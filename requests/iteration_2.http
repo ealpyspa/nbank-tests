@@ -23,7 +23,7 @@ Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
 
 ### What's the menimum amount of money can be topped up?
 
-### 1 - Positive test: Authorized user can top up their account with 0,01 (minimal allowed amount)
+### 1 - Positive test: Authorized user can top up their account with 0,01 (minimal allowed amount) -> it turned out to be float => Float.MIN_NORMAL
 POST http://localhost:4111/api/v1/accounts/deposit
 Content-Type: application/json
 Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
@@ -124,7 +124,7 @@ Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
 
 ### 8 - Positive test: Authorised user can transfer money to another account
 ### 8.1 -> another user's account
-### 8.2 -> another account of the sender
+### 8.2 -> another account of the sender (same user)
 POST http://localhost:4111/api/v1/accounts/transfer
 Content-Type: application/json
 Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
@@ -222,6 +222,7 @@ Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
 
 ### 16 - Positive test: Authorised user can update their name to another valid name (2 words, only letters, devided by space)
 ### Question: Which letters are allowed?
+### Question: what's the differene between "name" and "username". There are both fields, but requirements are for username.
 PUT http://localhost:4111/api/v1/customer/profile
 Content-Type: application/json
 Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
@@ -231,6 +232,8 @@ Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
 }
 
 ### 17 - Negative test: Authorised user cannot update their name to not valid one:
+### Reqirement from tested API: Name must contain two words with letters only
+### Bug: the response doesn't return the erro message in the body as it is visible in Swagger
 ### 11.1 -> one word with letters only -> "Alice" -> report an issue as it passed or check in later API versions.
 ### 11.2 -> two words with letters and digits/special character -> "name1"
 ### 11.3 -> three words -> "My new name"

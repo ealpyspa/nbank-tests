@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TransferMoneyTest {
     @BeforeAll
@@ -28,9 +29,9 @@ public class TransferMoneyTest {
     public static Stream<Arguments> validAmountOfMoney() {
         return Stream.of(
                 // minimal sum of transfer
-                Arguments.of("kate403", "Kate3001!", "USER", Float.MIN_NORMAL, "alice6", "Alice11!", "USER", Float.MIN_NORMAL),
+                Arguments.of("kate405", "Kate3001!", "USER", Float.MIN_NORMAL, "alice8", "Alice11!", "USER", Float.MIN_NORMAL),
                 // maximum sum of transfer
-                Arguments.of("kate404", "Kate3001!", "USER", 10000 + Float.MIN_NORMAL, "alice7", "Alice11!", "USER", 10000)
+                Arguments.of("kate406", "Kate3001!", "USER", 10000 + Float.MIN_NORMAL, "alice9", "Alice11!", "USER", 10000)
         );
     }
 
@@ -146,6 +147,20 @@ public class TransferMoneyTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("amount", Matchers.equalTo(amount))
                 .body("message",Matchers.equalTo("Transfer successful"));
+
+        // check hat user1 account balance has changed
+        float actualBalance = given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuthHeader)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().jsonPath().getFloat("[0].balance");
+
+        assertEquals(balance, actualBalance);
     }
 
 }

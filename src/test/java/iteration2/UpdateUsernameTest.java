@@ -36,7 +36,7 @@ public class UpdateUsernameTest {
                 .header("Authorization", "Basic YWRtaW46YWRtaW4=")
                 .body("""
                         {
-                          "username": "eva2007",
+                          "username": "eva2008",
                           "password":  "Eva2000!",
                           "role": "USER"
                         }
@@ -63,24 +63,36 @@ public class UpdateUsernameTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("message", Matchers.equalTo("Profile updated successfully"))
                 .body("customer.name", Matchers.equalTo("N m"));
+
+        // check that name has changed
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuthHeader)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", Matchers.equalTo("N m"));
     }
 
     public static Stream<Arguments> notValidName() {
         return Stream.of(
                 // 3 spaces
-                Arguments.of("zoe11", "Zoe1234!", "USER", "   "),
+                Arguments.of("zoe21", "Zoe1234!", "USER", "   "),
                 // 1 word
-                Arguments.of("zoe12", "Zoe1234!", "USER", "Zoe"),
+                Arguments.of("zoe22", "Zoe1234!", "USER", "Zoe"),
                 // two words, but not allowed character
-                Arguments.of("zoe13", "Zoe1234!", "USER", "New Name!"),
+                Arguments.of("zoe23", "Zoe1234!", "USER", "New Name!"),
                 //3 words
-                Arguments.of("zoe14", "Zoe1234!", "USER", "New Name Zoe"),
+                Arguments.of("zoe24", "Zoe1234!", "USER", "New Name Zoe"),
                 // 2 words but comma separated
-                Arguments.of("zoe15", "Zoe1234!", "USER", "New_Name"),
+                Arguments.of("zoe25", "Zoe1234!", "USER", "New_Name"),
                 // leading space
-                Arguments.of("zoe16", "Zoe1234!", "USER", " New Name"),
+                Arguments.of("zoe26", "Zoe1234!", "USER", " New Name"),
                 // trailing space
-                Arguments.of("zoe17", "Zoe1234!", "USER", "New Name ")
+                Arguments.of("zoe27", "Zoe1234!", "USER", "New Name ")
         );
     }
 
@@ -123,6 +135,18 @@ public class UpdateUsernameTest {
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body("status", Matchers.equalTo(400))
                 .body("error", Matchers.equalTo("Bad Request"));
+
+        // check that name has not changed
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuthToken)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", Matchers.nullValue());
     }
 
 }

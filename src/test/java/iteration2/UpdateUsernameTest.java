@@ -1,152 +1,121 @@
 package iteration2;
 
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import io.restassured.http.ContentType;
-import org.apache.http.HttpStatus;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
+import generators.RandomData;
+import iteration1.BaseTest;
+import models.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import requests.AdminCreateUserRequester;
+import requests.GetCustomerProfileRequester;
+import requests.UserUpdateNameRequester;
+import specs.RequestSpecs;
+import specs.ResponseSpecs;
+import utils.Utilities;
 
-import java.util.List;
 import java.util.stream.Stream;
 
-import static io.restassured.RestAssured.given;
-
-public class UpdateUsernameTest {
-    @BeforeAll
-    public static void setupRestAssured() {
-        RestAssured.filters(
-                List.of(new RequestLoggingFilter(),
-                        new ResponseLoggingFilter()
-                ));
-    }
-
+public class UpdateUsernameTest extends BaseTest {
     //Positive test: Authorised user can update their name to another valid name (2 words, only letters, devided by space)
     @Test
     public void userCanUpdateNameTest() {
-        // create user + extract auth token
-        String userAuthHeader = given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", "Basic YWRtaW46YWRtaW4=")
-                .body("""
-                        {
-                          "username": "eva2008",
-                          "password":  "Eva2000!",
-                          "role": "USER"
-                        }
-                        """)
-                .post("http://localhost:4111/api/v1/admin/users")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
-                .extract()
-                .header("Authorization");
+        // prepare request for user creation
+        CreateUserRequest createUserRequest = CreateUserRequest.builder()
+                .username(RandomData.getUsername())
+                .password(RandomData.getUserPassword())
+                .role(UserRole.USER.toString())
+                .build();
 
-        // update name
-        given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", userAuthHeader)
-                .body("""
-                        {
-                          "name": "N m"
-                        }
-                        """)
-                .put("http://localhost:4111/api/v1/customer/profile")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("message", Matchers.equalTo("Profile updated successfully"))
-                .body("customer.name", Matchers.equalTo("N m"));
+        // send user create request
+        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityIsCreated())
+                .post(createUserRequest);
+
+        // prepare request for name update
+        UserUpdateNameRequest userUpdateNameRequest = UserUpdateNameRequest.builder()
+                .name(RandomData.getUsername())
+                .build();
+
+        // send name update request
+        UserUpdateNameResponse userUpdateNameResponses = new UserUpdateNameRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(userUpdateNameRequest)
+                .extract()
+                .as(UserUpdateNameResponse.class);
+
+        String actualName = userUpdateNameResponses.getCustomer().getName();
+        String actualMessage = userUpdateNameResponses.getMessage();
+
+        softly.assertThat(actualName).isEqualTo(userUpdateNameRequest.getName());
+        softly.assertThat(actualMessage).isEqualTo(Utilities.PROFILE_UPDATED_MSG);
 
         // check that name has changed
-        given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", userAuthHeader)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/profile")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("name", Matchers.equalTo("N m"));
+        GetCustomerProfileResponse getCustomerProfileResponse = new GetCustomerProfileRequester(RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(null)
+                .extract()
+                .as(GetCustomerProfileResponse.class);
+
+        String updatedName = getCustomerProfileResponse.getName();
+        softly.assertThat(updatedName).isEqualTo(userUpdateNameRequest.getName());
     }
 
     public static Stream<Arguments> notValidName() {
         return Stream.of(
                 // 3 spaces
-                Arguments.of("zoe21", "Zoe1234!", "USER", "   "),
+                Arguments.of("   ", Utilities.PROFILE_UPDATED_ERROR_MSG),
                 // 1 word
-                Arguments.of("zoe22", "Zoe1234!", "USER", "Zoe"),
+                Arguments.of("Zoe", Utilities.PROFILE_UPDATED_ERROR_MSG),
                 // two words, but not allowed character
-                Arguments.of("zoe23", "Zoe1234!", "USER", "New Name!"),
+                Arguments.of("New Name!", Utilities.PROFILE_UPDATED_ERROR_MSG),
                 //3 words
-                Arguments.of("zoe24", "Zoe1234!", "USER", "New Name Zoe"),
+                Arguments.of("New Name Zoe", Utilities.PROFILE_UPDATED_ERROR_MSG),
                 // 2 words but comma separated
-                Arguments.of("zoe25", "Zoe1234!", "USER", "New_Name"),
+                Arguments.of("New_Name", Utilities.PROFILE_UPDATED_ERROR_MSG),
                 // leading space
-                Arguments.of("zoe26", "Zoe1234!", "USER", " New Name"),
+                Arguments.of(" New Name", Utilities.PROFILE_UPDATED_ERROR_MSG),
                 // trailing space
-                Arguments.of("zoe27", "Zoe1234!", "USER", "New Name ")
+                Arguments.of("New Name ", Utilities.PROFILE_UPDATED_ERROR_MSG)
         );
     }
 
     //Negative test: Authorised user cannot update their name to not valid name
     @ParameterizedTest
     @MethodSource("notValidName")
-    public void userCannotUpdateNameToNotValidTest(String username, String password, String role, String updatedName) {
-        // create user + extract auth token
-        String requestBody = String.format("""
-                {
-                          "username": "%s",
-                          "password":  "%s",
-                          "role": "%s"
-                        }
-                """, username, password, role);
-        String userAuthToken = given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", "Basic YWRtaW46YWRtaW4=")
-                .body(requestBody)
-                .post("http://localhost:4111/api/v1/admin/users")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
-                .extract()
-                .header("Authorization");
+    public void userCannotUpdateNameToNotValidTest(String updatedName, String message) {
+        // prepare request for user creation
+        CreateUserRequest createUserRequest = CreateUserRequest.builder()
+                .username(RandomData.getUsername())
+                .password(RandomData.getUserPassword())
+                .role(UserRole.USER.toString())
+                .build();
 
-        //update name
-        String updateRequest = "{\n" +
-                "\"name\": " + updatedName + "\n" +
-                "}";
-        given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", userAuthToken)
-                .body(updateRequest)
-                .put("http://localhost:4111/api/v1/customer/profile")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body("status", Matchers.equalTo(400))
-                .body("error", Matchers.equalTo("Bad Request"));
+        // send user create request
+        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityIsCreated())
+                .post(createUserRequest);
+
+        // prepare request for name update
+        UserUpdateNameRequest userUpdateNameRequest = UserUpdateNameRequest.builder()
+                .name(updatedName)
+                .build();
+
+        // send name update request
+        new UserUpdateNameRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsBadRequestText(message))
+                .post(userUpdateNameRequest);
 
         // check that name has not changed
-        given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", userAuthToken)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/profile")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("name", Matchers.nullValue());
-    }
+        String actualName = new GetCustomerProfileRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(null)
+                .extract()
+                .as(GetCustomerProfileResponse.class)
+                .getName();
 
+        softly.assertThat(actualName).isEqualTo(null);
+
+    }
 }

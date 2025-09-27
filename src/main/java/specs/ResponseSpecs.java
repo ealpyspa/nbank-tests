@@ -25,10 +25,17 @@ public class ResponseSpecs {
                 .build();
     }
 
-    public static ResponseSpecification requestReturnsBadRequest(String errorKey, String errorValue) {
+    public static ResponseSpecification requestReturnsBadRequestJson(String errorKey, String errorValue) {
         return defaultResponseBuilder()
                 .expectStatusCode(HttpStatus.SC_BAD_REQUEST)
                 .expectBody(errorKey, Matchers.equalTo(errorValue))
+                .build();
+    }
+
+    public static ResponseSpecification requestReturnsBadRequestText(String expectedMessage) {
+        return defaultResponseBuilder()
+                .expectStatusCode(HttpStatus.SC_BAD_REQUEST)
+                .expectBody(Matchers.equalTo(expectedMessage))
                 .build();
     }
 

@@ -50,13 +50,19 @@ public class DepositMoneyTest extends BaseTest {
                 ResponseSpecs.entityIsCreated())
                 .post(createUserRequest);
 
-        // create account + extract id
-        long createdAccountId = new CreateAccountRequester(
+        // create account
+        CreateAccountResponse createAccountResponse = new CreateAccountRequester(
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.entityIsCreated())
                 .post(null)
                 .extract()
-                .as(CreateAccountResponse.class).getId();
+                .as(CreateAccountResponse.class);
+
+        // extract id of created account
+        long createdAccountId = createAccountResponse.getId();
+
+        // extracts initial balance of created account
+        float createdAccountBalance = createAccountResponse.getBalance();
 
         // create a request to make a deposit
         DepositMoneyRequest depositMoneyRequest = DepositMoneyRequest.builder()
@@ -85,6 +91,6 @@ public class DepositMoneyTest extends BaseTest {
 
         float actualBalance = accountsResponseList.get(0).getBalance();
 
-        softly.assertThat(actualBalance).isEqualTo(balance);
+        softly.assertThat(actualBalance).isEqualTo(createdAccountBalance + balance);
     }
 }

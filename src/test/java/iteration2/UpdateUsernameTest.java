@@ -27,9 +27,11 @@ public class UpdateUsernameTest extends BaseTest {
                 .role(UserRole.USER.toString())
                 .build();
 
-        // send user create request
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityIsCreated())
-                .post(createUserRequest);
+        // send user create request + extract name (=null)
+        String initialName  = new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityIsCreated())
+                .post(createUserRequest)
+                .extract()
+                .as(CreateUserResponse.class).getName();
 
         // prepare request for name update
         UserUpdateNameRequest userUpdateNameRequest = UserUpdateNameRequest.builder()
@@ -59,6 +61,7 @@ public class UpdateUsernameTest extends BaseTest {
 
         String updatedName = getCustomerProfileResponse.getName();
         softly.assertThat(updatedName).isEqualTo(userUpdateNameRequest.getName());
+        softly.assertThat(updatedName).isNotEqualTo(initialName);
     }
 
     public static Stream<Arguments> notValidName() {
@@ -92,8 +95,10 @@ public class UpdateUsernameTest extends BaseTest {
                 .build();
 
         // send user create request
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityIsCreated())
-                .post(createUserRequest);
+        String initialName = new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityIsCreated())
+                .post(createUserRequest)
+                .extract()
+                .as(CreateUserResponse.class).getName();
 
         // prepare request for name update
         UserUpdateNameRequest userUpdateNameRequest = UserUpdateNameRequest.builder()
@@ -115,7 +120,7 @@ public class UpdateUsernameTest extends BaseTest {
                 .as(GetCustomerProfileResponse.class)
                 .getName();
 
-        softly.assertThat(actualName).isEqualTo(null);
+        softly.assertThat(actualName).isEqualTo(initialName);
 
     }
 }

@@ -41,7 +41,7 @@ public class TransferMoneyTest extends BaseTest {
                 ResponseSpecs.entityIsCreated())
                 .post(createUserRequest);
 
-        // user 1 creates account + extract id
+        // user 1 creates account
         long createdAccountId = new CreateAccountRequester(
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.entityIsCreated())
@@ -68,6 +68,15 @@ public class TransferMoneyTest extends BaseTest {
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsOk())
                 .post(depositMoneyRequest);
+
+        // get balance after 2 deposits
+        float afterDepositBalance = new UserGetsAccountsRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(null)
+                .extract()
+                .as(new TypeRef<List<UserGetAccountsResponse>>() {
+                }).get(0).getBalance();
 
         // prepare request to create user2
         CreateUserRequest createUser2Request = CreateUserRequest.builder()
@@ -121,7 +130,7 @@ public class TransferMoneyTest extends BaseTest {
                 });
 
         float actualBalance = userGetAccountsResponseList.get(0).getBalance();
-        softly.assertThat(actualBalance).isEqualTo(balance);
+        softly.assertThat(actualBalance).isEqualTo(afterDepositBalance - balance);
 
     }
 

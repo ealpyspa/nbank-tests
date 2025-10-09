@@ -1,0 +1,249 @@
+### Preconditions
+### Create a new user for test needs (Positive test: Admin can create new user with correct data)
+POST http://localhost:4111/api/v1/admin/users
+Content-Type: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
+
+{
+  "username": "eva124",
+  "password":  "Eva124!1",
+  "role": "USER"
+}
+
+### Create account (Positive test: Authorised user can create account)
+POST http://localhost:4111/api/v1/accounts
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+#########################################TESTS #############################################
+
+#############################################################################################
+### 1. Deposits money into the user's account.
+#############################################################################################
+
+### What's the menimum amount of money can be topped up?
+
+### 1 - Positive test: Authorized user can top up their account with 0,01 (minimal allowed amount) -> it turned out to be float => Float.MIN_NORMAL
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "id": 1,
+  "balance": 0.01
+}
+
+### 2 - Positive test: Authorised user can top up their account with 5000
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "id": 1,
+  "balance": 5000
+}
+
+### 3 - Negative test: Authorised user cannot top up their account with -0,01
+### Report an issues: There should be an error message about not valid amount of money.
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "id": 1,
+  "balance": -0.01
+}
+
+### 4 - Negative test: Authorized user cannot top up their account with 0
+### Report an issues: There should be an error message about not valid amount of money.
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "id": 1,
+  "balance": 0
+}
+
+### 5 - Negative test: Authorized user cannot top up their account with 5000,01
+### Report an issues: The system allows to top ip more than 5000
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "id": 1,
+  "balance": 5000.01
+}
+
+### 6 - Negative test: Autorised user cannot deposit money to not their account
+### Preconditions: create user2, user2 create their account2. User1 top up account2.
+### create user2
+POST http://localhost:4111/api/v1/admin/users
+Content-Type: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
+
+{
+  "username": "alice1",
+  "password":  "AliceCooper1!",
+  "role": "USER"
+}
+### User2 creates their account
+POST http://localhost:4111/api/v1/accounts
+Content-Type: application/json
+Authorization: Basic YWxpY2UxOkFsaWNlQ29vcGVyMSE=
+
+### test
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "id": 2,
+  "balance": 5000
+}
+
+### 7 - Negative test: Authorized user cannot deposit money to not existed account
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "id": 6,
+  "balance": 5000
+}
+
+#############################################################################################
+### 2. Transfer money from one account to another one.
+#############################################################################################
+
+### Question: meaning between users accounts or between different users accounts?
+### Based on request -> I would stick to the 2nd one approach
+### But API implementation contradicts to requriement: API allowes to transfer to another user's account,
+### requirement says it should not be allowed
+
+### 8 - Positive test: Authorised user can transfer money to another account
+### 8.1 -> another user's account
+### 8.2 -> another account of the sender (same user)
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 0.01
+}
+
+### 9 - Negative test: Authorised user cannot transfer money to not existing account
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 3,
+  "amount": 50
+}
+
+### 10 - Negative test: Authorised user cannot transfer money to their own account (the same one? I assume)
+### Report an issue - as it is allowed - but for this there is deposit operation
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 1,
+  "amount": 50
+}
+
+### 11 - Negative test: Authorized user cannot transfer negative amount of money -0.01
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": -0.01
+}
+
+### 12 - Negative test: Authorized user cannot transfer 0 amount of money
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 0
+}
+
+### 13 - Positive test: Authorized user can transfer 10000
+### Precondition: user's account should have at least 10000 (so prestep can be top up the sender account)
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 10000
+}
+
+### 14 - Nrgative test: Authorized user cannot transfer more than 10000
+### Precondition: user's account should have more than 10000 (so prestep can be top up the sender account)
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 10000.01
+}
+
+### 15 - Nrgative test: Authorized user cannot transfer more money than has
+### Precondition: see the balance of sender account (e.g. N) and transfer that sum + 0.01 (e.g. N + 0.01)
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 50.01
+}
+
+#############################################################################################
+### 3. Updating user's name
+#############################################################################################
+
+### 16 - Positive test: Authorised user can update their name to another valid name (2 words, only letters, devided by space)
+### Question: Which letters are allowed?
+### Question: what's the differene between "name" and "username". There are both fields, but requirements are for username.
+PUT http://localhost:4111/api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "name": "N m"
+}
+
+### 17 - Negative test: Authorised user cannot update their name to not valid one:
+### Reqirement from tested API: Name must contain two words with letters only
+### Bug: the response doesn't return the erro message in the body as it is visible in Swagger
+### 11.1 -> one word with letters only -> "Alice" -> report an issue as it passed or check in later API versions.
+### 11.2 -> two words with letters and digits/special character -> "name1"
+### 11.3 -> three words -> "My new name"
+### 11.4 -> two words underscore separated -> "New_Name"
+### 11.5 -> leading space -> " New name"
+### 11.6 -> trailing space -> "new name "
+PUT http://localhost:4111/api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic ZXZhMTI0OkV2YTEyNCEx
+
+{
+  "name": "Alice"
+}

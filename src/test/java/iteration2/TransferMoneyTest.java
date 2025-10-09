@@ -1,166 +1,137 @@
 package iteration2;
 
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import io.restassured.http.ContentType;
-import org.apache.http.HttpStatus;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
+import generators.RandomData;
+import io.restassured.common.mapper.TypeRef;
+import iteration1.BaseTest;
+import models.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import requests.*;
+import specs.RequestSpecs;
+import specs.ResponseSpecs;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public class TransferMoneyTest {
-    @BeforeAll
-    public static void setupRestAssured() {
-        RestAssured.filters(
-                List.of(new RequestLoggingFilter(),
-                        new ResponseLoggingFilter()
-                ));
-    }
-
+public class TransferMoneyTest extends BaseTest {
     public static Stream<Arguments> validAmountOfMoney() {
         return Stream.of(
                 // minimal sum of transfer
-                Arguments.of("kate405", "Kate3001!", "USER", Float.MIN_NORMAL, "alice8", "Alice11!", "USER", Float.MIN_NORMAL),
+                Arguments.of(Float.MIN_NORMAL, Float.MIN_NORMAL, "Transfer successful"),
                 // maximum sum of transfer
-                Arguments.of("kate406", "Kate3001!", "USER", 10000 + Float.MIN_NORMAL, "alice9", "Alice11!", "USER", 10000)
+                Arguments.of(10000 + Float.MIN_NORMAL, 10000, "Transfer successful")
         );
     }
 
     @ParameterizedTest
     @MethodSource("validAmountOfMoney")
     // Positive test: User can transfer valid amount of money to another user's account
-    public void useCanTransferMoneyToAnotherUserTest(String username, String password, String role, float balance, String username1, String password1, String role1, float amount) {
-        // create user1 + extract auth token
-        String requestBody = String.format("""
-                {
-                          "username": "%s",
-                          "password":  "%s",
-                          "role": "%s"
-                        }
-                """, username, password, role);
-        String userAuthHeader = given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", "Basic YWRtaW46YWRtaW4=")
-                .body(requestBody)
-                .post("http://localhost:4111/api/v1/admin/users")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
-                .extract()
-                .header("Authorization");
+    public void useCanTransferMoneyToAnotherUserTest(float balance, float amount, String message) {
+        // prepare request for user1 creation
+        CreateUserRequest createUserRequest = CreateUserRequest.builder()
+                .username(RandomData.getUsername())
+                .password(RandomData.getUserPassword())
+                .role(UserRole.USER.toString())
+                .build();
 
-        // user1 create their account
-        int userAccountId = given()
-                .header("Authorization", userAuthHeader)
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .post("http://localhost:4111/api/v1/accounts")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
+        // create user1
+        new AdminCreateUserRequester(
+                RequestSpecs.adminSpec(),
+                ResponseSpecs.entityIsCreated())
+                .post(createUserRequest);
+
+        // user 1 creates account
+        long createdAccountId = new CreateAccountRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.entityIsCreated())
+                .post(null)
                 .extract()
-                .response().jsonPath().getInt("id");
+                .as(CreateAccountResponse.class).getId();
+
+        // create a request to make a deposit
+        DepositMoneyRequest depositMoneyRequest = DepositMoneyRequest.builder()
+                .id(createdAccountId)
+                .balance(balance)
+                .build();
 
         // user1 top up their account with money (enough to make transfer)
         // as maximum sum transfer check -> do top up twice
         // 1st top up
-        String request = "{\n" +
-                "  \"id\": " + userAccountId + ",\n" +
-                "  \"balance\": " + balance + "\n" +
-                "}";
-        given()
-                .header("Authorization", userAuthHeader)
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body(request)
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK);
+        new UserDepositMoneyRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(depositMoneyRequest);
+
         // 2nd top up
-        given()
-                .header("Authorization", userAuthHeader)
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body(request)
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK);
+        new UserDepositMoneyRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(depositMoneyRequest);
 
-        // create user 2
-        String requestBody1 = String.format("""
-                {
-                          "username": "%s",
-                          "password":  "%s",
-                          "role": "%s"
-                        }
-                """, username1, password1, role1);
-        String userAuthHeader1 = given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", "Basic YWRtaW46YWRtaW4=")
-                .body(requestBody1)
-                .post("http://localhost:4111/api/v1/admin/users")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
+        // get balance after 2 deposits
+        float afterDepositBalance = new UserGetsAccountsRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(null)
                 .extract()
-                .header("Authorization");
+                .as(new TypeRef<List<UserGetAccountsResponse>>() {
+                }).get(0).getBalance();
 
-        // user2 create their account
-        int userAccountId1 = given()
-                .header("Authorization", userAuthHeader1)
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .post("http://localhost:4111/api/v1/accounts")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
+        // prepare request to create user2
+        CreateUserRequest createUser2Request = CreateUserRequest.builder()
+                .username(RandomData.getUsername())
+                .password(RandomData.getUserPassword())
+                .role(UserRole.USER.toString())
+                .build();
+
+        // create user2
+        new AdminCreateUserRequester(
+                RequestSpecs.adminSpec(),
+                ResponseSpecs.entityIsCreated())
+                .post(createUser2Request);
+
+        // user 2 creates account + extract id
+        long createdAccount2Id = new CreateAccountRequester(
+                RequestSpecs.authAsUser(createUser2Request.getUsername(), createUser2Request.getPassword()),
+                ResponseSpecs.entityIsCreated())
+                .post(null)
                 .extract()
-                .response().jsonPath().getInt("id");
+                .as(CreateAccountResponse.class).getId();
 
-        // user1 transfer valid amount of money to user2 account
-        String transferRequestBody = "{\n" +
-                "  \"senderAccountId\": " + userAccountId + " ,\n" +
-                "  \"receiverAccountId\": " + userAccountId1 + ",\n" +
-                "  \"amount\": " + amount + " \n" +
-                "}";
-        given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", userAuthHeader)
-                .body(transferRequestBody)
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("amount", Matchers.equalTo(amount))
-                .body("message",Matchers.equalTo("Transfer successful"));
+        // prepare transfer money request
+        TransferMoneyRequest transferMoneyRequest = TransferMoneyRequest.builder()
+                .senderAccountId(createdAccountId)
+                .receiverAccountId(createdAccount2Id)
+                .amount(amount)
+                .build();
 
-        // check hat user1 account balance has changed
-        float actualBalance = given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", userAuthHeader)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().jsonPath().getFloat("[0].balance");
+        // user1 transfers valid amount of money to user2 account
+        TransferMoneyResponse transferMoneyResponse = new TransferMoneyRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(transferMoneyRequest)
+                .extract()
+                .as(TransferMoneyResponse.class);
 
-        assertEquals(balance, actualBalance);
+        float actualAmount = transferMoneyResponse.getAmount();
+        String actualMessage = transferMoneyResponse.getMessage();
+
+        softly.assertThat(actualAmount).isEqualTo(amount);
+        softly.assertThat(actualMessage).isEqualTo(message);
+
+        // check that user1 account balance has changed
+        List<UserGetAccountsResponse> userGetAccountsResponseList = new UserGetsAccountsRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(null)
+                .extract()
+                .as(new TypeRef<List<UserGetAccountsResponse>>() {
+                });
+
+        float actualBalance = userGetAccountsResponseList.get(0).getBalance();
+        softly.assertThat(actualBalance).isEqualTo(afterDepositBalance - balance);
+
     }
 
 }

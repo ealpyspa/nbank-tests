@@ -1,36 +1,30 @@
 package iteration2;
 
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import io.restassured.http.ContentType;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeAll;
+import generators.RandomData;
+import io.restassured.common.mapper.TypeRef;
+import iteration1.BaseTest;
+import models.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import requests.AdminCreateUserRequester;
+import requests.CreateAccountRequester;
+import requests.UserDepositMoneyRequester;
+import requests.UserGetsAccountsRequester;
+import specs.RequestSpecs;
+import specs.ResponseSpecs;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public class DepositMoneyTest {
-    @BeforeAll
-    public static void setupRestAssured() {
-        RestAssured.filters(
-                List.of(new RequestLoggingFilter(),
-                        new ResponseLoggingFilter()
-                ));
-    }
+public class DepositMoneyTest extends BaseTest {
 
     public static Stream<Arguments> validAmountOfMoney() {
         return Stream.of(
                 // minimal allowed amount of money
-                Arguments.of("kate2077", "Kate2000!", "USER", Float.MIN_NORMAL),
+                Arguments.of(Float.MIN_NORMAL),
                 // maximum allowed amount of money
-                Arguments.of("kate2078", "Kate2000!", "USER", 5000)
+                Arguments.of(5000)
         );
     }
 
@@ -42,69 +36,61 @@ public class DepositMoneyTest {
     // Workaround solution: extract value and use assertEquals()
     @ParameterizedTest
     @MethodSource("validAmountOfMoney")
-    public void userCanTopUpAccount(String username, String password, String role, float balance) {
-        // create user + extract auth token
-        String requestBody = String.format("""
-                {
-                          "username": "%s",
-                          "password":  "%s",
-                          "role": "%s"
-                        }
-                """, username, password, role);
-        String userAuthHeader = given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", "Basic YWRtaW46YWRtaW4=")
-                .body(requestBody)
-                .post("http://localhost:4111/api/v1/admin/users")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
+    public void userCanTopUpAccount(float balance) {
+        // prepare request for user creation
+        CreateUserRequest createUserRequest = CreateUserRequest.builder()
+                .username(RandomData.getUsername())
+                .password(RandomData.getUserPassword())
+                .role(UserRole.USER.toString())
+                .build();
+
+        // create user
+        new AdminCreateUserRequester(
+                RequestSpecs.adminSpec(),
+                ResponseSpecs.entityIsCreated())
+                .post(createUserRequest);
+
+        // create account
+        CreateAccountResponse createAccountResponse = new CreateAccountRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.entityIsCreated())
+                .post(null)
                 .extract()
-                .header("Authorization");
+                .as(CreateAccountResponse.class);
 
-        // create bank account and get account id
-        int userAccountId = given()
-                .header("Authorization", userAuthHeader)
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .post("http://localhost:4111/api/v1/accounts")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
+        // extract id of created account
+        long createdAccountId = createAccountResponse.getId();
+
+        // extracts initial balance of created account
+        float createdAccountBalance = createAccountResponse.getBalance();
+
+        // create a request to make a deposit
+        DepositMoneyRequest depositMoneyRequest = DepositMoneyRequest.builder()
+                .id(createdAccountId)
+                .balance(balance)
+                .build();
+
+        // make a deposit + get amount of it + compare
+        float actualAmount = new UserDepositMoneyRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(depositMoneyRequest)
                 .extract()
-                .response().jsonPath().getInt("id");
+                .as(DepositMoneyResponse.class)
+                .getTransactions().getFirst().getAmount();
 
-        // user top up account with money
-        String request = "{\n" +
-                "  \"id\": " + userAccountId + ",\n" +
-                "  \"balance\": " + balance + "\n" +
-                "}";
-        float actualAmount = given()
-                .header("Authorization", userAuthHeader)
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body(request)
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().jsonPath().getFloat("transactions[0].amount");
+        softly.assertThat(actualAmount).isEqualTo(balance);
 
-        assertEquals(balance, actualAmount);
+        // check balance is changed and equal to amount of deposit
+        List<UserGetAccountsResponse> accountsResponseList = new UserGetsAccountsRequester(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                ResponseSpecs.requestReturnsOk())
+                .post(null)
+                .extract()
+                .as(new TypeRef<List<UserGetAccountsResponse>>(){});
 
-        // check that balance has changed
-        float actualBalance = given()
-                .header("Authorization", userAuthHeader)
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().jsonPath().getFloat("[0].balance");
+        float actualBalance = accountsResponseList.get(0).getBalance();
 
-        assertEquals(balance, actualBalance);
+        softly.assertThat(actualBalance).isEqualTo(createdAccountBalance + balance);
     }
 }

@@ -1,8 +1,8 @@
-package iteration2;
+package api.iteration2;
 
 import generators.RandomData;
 import io.restassured.common.mapper.TypeRef;
-import iteration1.BaseTest;
+import api.iteration1.BaseTest;
 import models.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

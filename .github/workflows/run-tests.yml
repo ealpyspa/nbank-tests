@@ -31,4 +31,4 @@ jobs:
         run: cd infra/docker_compose && bash restart_docker.sh && cd ../..
 
       - name: Run tests
-        run: ./mvnw cleat test
+        run: ./mvnw clean test

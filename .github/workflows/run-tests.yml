@@ -30,5 +30,8 @@ jobs:
       - name: Set up services
         run: cd infra/docker_compose && bash restart_docker.sh && cd ../..
 
+      - name: Provide executable permission to maven
+        run: chmod +x ./mvnw
+
       - name: Run tests
         run: ./mvnw clean test

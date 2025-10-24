@@ -23,6 +23,42 @@ public enum Endpoint {
             "/accounts",
             BaseModel.class,
             CreateAccountResponse.class
+    ),
+
+    ACCOUNTS_DEPOSIT(
+            "/accounts/deposit",
+            DepositMoneyRequest.class,
+            DepositMoneyResponse.class
+    ),
+
+    CUSTOMER_ACCOUNTS(
+            "/customer/accounts",
+            BaseModel.class,
+            UserGetAccountsResponse.class
+    ),
+
+    ACCOUNTS_TRANSFER(
+            "/accounts/transfer",
+            TransferMoneyRequest.class,
+            TransferMoneyResponse.class
+    ),
+
+    CUSTOMER_PROFILE_PUT(
+            "/customer/profile",
+            UserUpdateNameRequest.class,
+            UserUpdateNameResponse.class
+    ),
+
+    CUSTOMER_PROFILE_GET(
+            "/customer/profile",
+            BaseModel.class,
+            GetCustomerProfileResponse.class
+    ),
+
+    ADMIN_USER_DELETE(
+            "/admin/users/{id}",
+            BaseModel.class,
+            BaseModel.class
     );
 
     private final String url;

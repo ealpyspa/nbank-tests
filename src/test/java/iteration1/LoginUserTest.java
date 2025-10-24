@@ -27,12 +27,12 @@ public class LoginUserTest extends BaseTest{
                 ResponseSpecs.requestReturnsOk())
                 .post(loginUserRequest);
 
-        // add delete step of created entity
     }
 
     @Test
     public void userCanGenerateAuthTokenTest() {
-        CreateUserRequest userRequest = AdminSteps.createUser();
+        var createUser = AdminSteps.createUser();
+        CreateUserRequest userRequest = createUser.getRequest();
 
         new CrudRequester(
                 Endpoint.LOGIN,
@@ -44,6 +44,8 @@ public class LoginUserTest extends BaseTest{
                         .build())
                 .header("Authorization", Matchers.notNullValue());
 
-        // add delete step of created entity
+        // delete user by id
+        long userId = createUser.getResponse().getId();
+        AdminSteps.deleteUser(userId);
     }
 }

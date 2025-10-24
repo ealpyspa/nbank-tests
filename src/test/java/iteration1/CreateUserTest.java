@@ -11,9 +11,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import requests.skeleton.Endpoint;
 import requests.skeleton.requesters.CrudRequester;
 import requests.skeleton.requesters.ValidatedCrudeRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 public class CreateUserTest extends BaseTest {
@@ -31,7 +33,8 @@ public class CreateUserTest extends BaseTest {
 
         ModelAssertions.assertThatModels(createUserRequest, createUserResponse).match();
 
-        // add delete step of created entity
+        // delete user by admin
+        AdminSteps.deleteUser(createUserResponse.getId());
     }
 
     public static Stream<Arguments> userInvalidData() {
@@ -39,19 +42,22 @@ public class CreateUserTest extends BaseTest {
                 // username field validation
                 // blank username
                 // it will return same errors texts, but in different orders. Hint: It's not a string but array of strings returned in the response
-                Arguments.of(" ", "Password33%", "USER", "username", "Username cannot be blank"), // Username must contain only letters, digits, dashes, underscores, and dots, Username must be between 3 and 15 characters, Username cannot be blank"
+                Arguments.of(" ", "Password33%", "USER", "username",
+                        List.of("Username cannot be blank", "Username must contain only letters, digits, dashes, underscores, and dots", "Username must be between 3 and 15 characters")), // Username must contain only letters, digits, dashes, underscores, and dots, Username must be between 3 and 15 characters, Username cannot be blank"
                 // username consists of 2 characters
-                Arguments.of("ab", "Password33%", "USER", "username", "Username must be between 3 and 15 characters"),
+                Arguments.of("ab", "Password33%", "USER", "username",
+                        List.of("Username must be between 3 and 15 characters")),
                 // username consists of 16 characters
-                Arguments.of("Abcdeftghjklthjg", "Password33%", "USER", "username", "Username must be between 3 and 15 characters"),
+                Arguments.of("Abcdeftghjklthjg", "Password33%", "USER", "username",
+                        List.of("Username must be between 3 and 15 characters")),
                 // username contains not allowed symbol
-                Arguments.of("Abc%", "Password33%", "USER", "username", "Username must contain only letters, digits, dashes, underscores, and dots"));
+                Arguments.of("Abc%", "Password33%", "USER", "username",
+                        List.of("Username must contain only letters, digits, dashes, underscores, and dots")));
     }
 
     @ParameterizedTest
     @MethodSource("userInvalidData")
-    public void adminCannotCreateUserWithInvalidDataTest(String username, String password, String role, String errorKey, String errorValue) {
-
+    public void adminCannotCreateUserWithInvalidDataTest(String username, String password, String role, String errorKey, List<String> errorValue) {
         CreateUserRequest createUserRequest = CreateUserRequest.builder()
                 .username(username)
                 .password(password)
@@ -63,7 +69,6 @@ public class CreateUserTest extends BaseTest {
                 RequestSpecs.adminSpec(),
                 ResponseSpecs.requestReturnsBadRequestJson(errorKey, errorValue))
                 .post(createUserRequest);
-        }
+    }
 
-        // add delete step of created entity
 }

@@ -12,9 +12,14 @@ public class CreateAccountTest extends BaseTest {
 
     @Test
     public void userCanCreateAccountTest() {
+        // create user
         var createUser = AdminSteps.createUser();
         CreateUserRequest userRequest = createUser.getRequest();
 
+        // register user for further deletion
+        registerCreatedUser(createUser.getResponse());
+
+        // send create user request
         new CrudRequester(
                 Endpoint.ACCOUNTS,
                 RequestSpecs.authAsUser(
@@ -24,9 +29,5 @@ public class CreateAccountTest extends BaseTest {
                 .post(null);
 
         // Next steps: need to request all user's accounts and check that the one is created among them
-
-        // delete user by admin
-        long userId = createUser.getResponse().getId();
-        AdminSteps.deleteUser(userId);
     }
 }

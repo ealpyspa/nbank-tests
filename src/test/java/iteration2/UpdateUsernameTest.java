@@ -10,7 +10,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import requests.skeleton.Endpoint;
 import requests.skeleton.requesters.ValidatedCrudeRequester;
-import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 import utils.Utilities;
@@ -31,6 +30,9 @@ public class UpdateUsernameTest extends BaseTest {
                 RequestSpecs.adminSpec(),
                 ResponseSpecs.entityIsCreated())
                 .post(createUserRequest);
+
+        // register user for further deletion
+        registerCreatedUser(createUserResponse);
 
         String initialName = createUserResponse.getName();
 
@@ -70,10 +72,6 @@ public class UpdateUsernameTest extends BaseTest {
         softly.assertThat(updatedName).isEqualTo(userUpdateNameRequest.getName());
         softly.assertThat(updatedName).isNotEqualTo(initialName);
 
-        // delete user by admin
-        long userId = createUserResponse.getId();
-        AdminSteps.deleteUser(userId);
-
     }
 
     public static Stream<Arguments> notValidName() {
@@ -111,6 +109,9 @@ public class UpdateUsernameTest extends BaseTest {
                 ResponseSpecs.entityIsCreated())
                 .post(createUserRequest);
 
+        // register user for further deletion
+        registerCreatedUser(createUserResponse);
+
         String initialName = createUserResponse.getName();
 
         // prepare request for name update
@@ -133,10 +134,6 @@ public class UpdateUsernameTest extends BaseTest {
                 .getAll().get(0).getName();
 
         softly.assertThat(actualName).isEqualTo(initialName);
-
-        // delete user by admin
-        long userId = createUserResponse.getId();
-        AdminSteps.deleteUser(userId);
 
     }
 }

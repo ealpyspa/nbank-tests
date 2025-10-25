@@ -2,7 +2,6 @@ package iteration2;
 
 import iteration1.BaseTest;
 import models.*;
-import models.comparison.ModelAssertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -39,6 +38,9 @@ public class DepositMoneyTest extends BaseTest {
         var createdUser = AdminSteps.createUser();
         CreateUserRequest createUserRequest = createdUser.getRequest();
 
+        // register user for further deletion
+        registerCreatedUser(createdUser.getResponse());
+
         // create account
         CreateAccountResponse createAccountResponse = UserSteps.userCreatesAccount(createUserRequest);
 
@@ -74,10 +76,6 @@ public class DepositMoneyTest extends BaseTest {
                 .getAll().get(0).getBalance();
 
         softly.assertThat(actualBalance).isEqualTo(createdAccountBalance + balance);
-
-        // delete user by admin
-        long createUser1Id = createdUser.getResponse().getId();
-        AdminSteps.deleteUser(createUser1Id);
 
     }
 }

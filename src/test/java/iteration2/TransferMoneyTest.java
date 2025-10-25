@@ -33,6 +33,9 @@ public class TransferMoneyTest extends BaseTest {
         var createUser1 = AdminSteps.createUser();
         CreateUserRequest createUserRequest = createUser1.getRequest();
 
+        // register user1 for further deletion
+        registerCreatedUser(createUser1.getResponse());
+
         // user 1 creates account
         long createdAccountId = UserSteps.userCreatesAccount(createUserRequest).getId();
 
@@ -61,6 +64,9 @@ public class TransferMoneyTest extends BaseTest {
         // create user2
         var createUser2 = AdminSteps.createUser();
         CreateUserRequest createUser2Request = createUser2.getRequest();
+
+        // register user2 for further deletion
+        registerCreatedUser(createUser2.getResponse());
 
         // user 2 creates account + extract id
         long createdAccount2Id = UserSteps.userCreatesAccount(createUser2Request).getId();
@@ -93,14 +99,6 @@ public class TransferMoneyTest extends BaseTest {
                 .get(0).getBalance();
 
         softly.assertThat(actualBalance).isEqualTo(afterDepositBalance - amount);
-
-        // delete user1 by admin
-        long user1Id = createUser1.getResponse().getId();
-        AdminSteps.deleteUser(user1Id);
-
-        // delete user2 by admin
-        long user2Id = createUser2.getResponse().getId();
-        AdminSteps.deleteUser(user2Id);
 
     }
 

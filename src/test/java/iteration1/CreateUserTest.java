@@ -11,7 +11,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import requests.skeleton.Endpoint;
 import requests.skeleton.requesters.CrudRequester;
 import requests.skeleton.requesters.ValidatedCrudeRequester;
-import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -31,10 +30,11 @@ public class CreateUserTest extends BaseTest {
                 ResponseSpecs.entityIsCreated())
                 .post(createUserRequest);
 
+        // register user for further deletion
+        registerCreatedUser(createUserResponse);
+
         ModelAssertions.assertThatModels(createUserRequest, createUserResponse).match();
 
-        // delete user by admin
-        AdminSteps.deleteUser(createUserResponse.getId());
     }
 
     public static Stream<Arguments> userInvalidData() {

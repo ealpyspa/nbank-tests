@@ -34,6 +34,9 @@ public class LoginUserTest extends BaseTest{
         var createUser = AdminSteps.createUser();
         CreateUserRequest userRequest = createUser.getRequest();
 
+        // register user for further deletion
+        registerCreatedUser(createUser.getResponse());
+
         new CrudRequester(
                 Endpoint.LOGIN,
                 RequestSpecs.unauthSpec(),
@@ -44,8 +47,5 @@ public class LoginUserTest extends BaseTest{
                         .build())
                 .header("Authorization", Matchers.notNullValue());
 
-        // delete user by id
-        long userId = createUser.getResponse().getId();
-        AdminSteps.deleteUser(userId);
     }
 }

@@ -1,20 +1,17 @@
 package iteration2;
 
-import generators.RandomData;
-import io.restassured.common.mapper.TypeRef;
 import iteration1.BaseTest;
 import models.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import requests.AdminCreateUserRequester;
-import requests.CreateAccountRequester;
-import requests.UserDepositMoneyRequester;
-import requests.UserGetsAccountsRequester;
+import requests.skeleton.Endpoint;
+import requests.skeleton.requesters.ValidatedCrudeRequester;
+import requests.steps.AdminSteps;
+import requests.steps.UserSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 public class DepositMoneyTest extends BaseTest {
@@ -37,26 +34,15 @@ public class DepositMoneyTest extends BaseTest {
     @ParameterizedTest
     @MethodSource("validAmountOfMoney")
     public void userCanTopUpAccount(float balance) {
-        // prepare request for user creation
-        CreateUserRequest createUserRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getUserPassword())
-                .role(UserRole.USER.toString())
-                .build();
-
         // create user
-        new AdminCreateUserRequester(
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityIsCreated())
-                .post(createUserRequest);
+        var createdUser = AdminSteps.createUser();
+        CreateUserRequest createUserRequest = createdUser.getRequest();
+
+        // register user for further deletion
+        registerCreatedUser(createdUser.getResponse());
 
         // create account
-        CreateAccountResponse createAccountResponse = new CreateAccountRequester(
-                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
-                ResponseSpecs.entityIsCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class);
+        CreateAccountResponse createAccountResponse = UserSteps.userCreatesAccount(createUserRequest);
 
         // extract id of created account
         long createdAccountId = createAccountResponse.getId();
@@ -64,33 +50,32 @@ public class DepositMoneyTest extends BaseTest {
         // extracts initial balance of created account
         float createdAccountBalance = createAccountResponse.getBalance();
 
-        // create a request to make a deposit
+        // create a request to make a deposit (leave as is because of parameters)
         DepositMoneyRequest depositMoneyRequest = DepositMoneyRequest.builder()
                 .id(createdAccountId)
                 .balance(balance)
                 .build();
 
         // make a deposit + get amount of it + compare
-        float actualAmount = new UserDepositMoneyRequester(
+        float actualAmount = new ValidatedCrudeRequester<DepositMoneyResponse>(
+                Endpoint.ACCOUNTS_DEPOSIT,
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsOk())
                 .post(depositMoneyRequest)
-                .extract()
-                .as(DepositMoneyResponse.class)
                 .getTransactions().getFirst().getAmount();
 
         softly.assertThat(actualAmount).isEqualTo(balance);
+        //ModelAssertions.assertThatModels(depositMoneyRequest, depositMoneyResponse).match(); ->
+        // rework so this work -> model-comparison.properties: DepositMoneyRequest=DepositMoneyResponse:balance=transactions[0].amount
 
         // check balance is changed and equal to amount of deposit
-        List<UserGetAccountsResponse> accountsResponseList = new UserGetsAccountsRequester(
+        float actualBalance = new ValidatedCrudeRequester<UserGetAccountsResponse>(
+                Endpoint.CUSTOMER_ACCOUNTS,
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsOk())
-                .post(null)
-                .extract()
-                .as(new TypeRef<List<UserGetAccountsResponse>>(){});
-
-        float actualBalance = accountsResponseList.get(0).getBalance();
+                .getAll().get(0).getBalance();
 
         softly.assertThat(actualBalance).isEqualTo(createdAccountBalance + balance);
+
     }
 }

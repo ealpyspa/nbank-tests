@@ -16,7 +16,8 @@
         <rest.assured.version>5.5.1</rest.assured.version>
         <lombok.version>1.18.38</lombok.version>
         <jackson.version>2.19.0</jackson.version>
-        <assertj.version>3.27.3</assertj.version>
+        <assertj.version>3.25.3</assertj.version>
+        <rgxgen.version>1.4</rgxgen.version>
     </properties>
     <dependencies>
         <dependency>
@@ -41,10 +42,14 @@
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.github.curious-odd-man</groupId>
+            <artifactId>rgxgen</artifactId>
+            <version>${rgxgen.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${assertj.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

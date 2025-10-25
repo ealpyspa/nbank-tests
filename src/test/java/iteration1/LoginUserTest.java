@@ -1,17 +1,18 @@
 package iteration1;
 
-import generators.RandomData;
 import models.CreateUserRequest;
+import models.CreateUserResponse;
 import models.LoginUserRequest;
-import models.UserRole;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import requests.AdminCreateUserRequester;
-import requests.LoginUserRequester;
+import requests.skeleton.Endpoint;
+import requests.skeleton.requesters.CrudRequester;
+import requests.skeleton.requesters.ValidatedCrudeRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
-public class LoginUserTest {
+public class LoginUserTest extends BaseTest{
 
     @Test
     public void adminCanGenerateAuthTokenTest() {
@@ -20,25 +21,24 @@ public class LoginUserTest {
                 .password("admin")
                 .build();
 
-        new LoginUserRequester(RequestSpecs.unauthSpec(),
+        new ValidatedCrudeRequester<CreateUserResponse>(
+                Endpoint.LOGIN,
+                RequestSpecs.unauthSpec(),
                 ResponseSpecs.requestReturnsOk())
                 .post(loginUserRequest);
+
     }
 
     @Test
     public void userCanGenerateAuthTokenTest() {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getUserPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        var createUser = AdminSteps.createUser();
+        CreateUserRequest userRequest = createUser.getRequest();
 
-        new AdminCreateUserRequester(
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityIsCreated())
-                .post(userRequest);
+        // register user for further deletion
+        registerCreatedUser(createUser.getResponse());
 
-        new LoginUserRequester(
+        new CrudRequester(
+                Endpoint.LOGIN,
                 RequestSpecs.unauthSpec(),
                 ResponseSpecs.requestReturnsOk())
                 .post(LoginUserRequest.builder()
@@ -46,5 +46,6 @@ public class LoginUserTest {
                         .password(userRequest.getPassword())
                         .build())
                 .header("Authorization", Matchers.notNullValue());
+
     }
 }

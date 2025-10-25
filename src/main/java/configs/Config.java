@@ -31,10 +31,10 @@ public class Config {
 
         // Priority 2 0 environment variable baseAPIUrl - BASEAPIURL
         // admin.username ->ADMIN_USERNAME
-        String envKey = key.toUpperCase().replace(".","_");
+        String envKey = key.toUpperCase().replace(".", "_");
 
         String envValue = System.getenv(envKey);
-        if(envValue != null) {
+        if (envValue != null) {
             return envValue;
         }
         // Priority 3 - config.properties

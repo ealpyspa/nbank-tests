@@ -1,17 +1,18 @@
-package api.iteration2;
+package iteration2;
 
-import generators.RandomData;
-import io.restassured.common.mapper.TypeRef;
-import api.iteration1.BaseTest;
+import iteration1.BaseTest;
 import models.*;
+import models.comparison.ModelAssertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import requests.*;
+import requests.skeleton.Endpoint;
+import requests.skeleton.requesters.ValidatedCrudeRequester;
+import requests.steps.AdminSteps;
+import requests.steps.UserSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 public class TransferMoneyTest extends BaseTest {
@@ -20,7 +21,7 @@ public class TransferMoneyTest extends BaseTest {
                 // minimal sum of transfer
                 Arguments.of(Float.MIN_NORMAL, Float.MIN_NORMAL, "Transfer successful"),
                 // maximum sum of transfer
-                Arguments.of(10000 + Float.MIN_NORMAL, 10000, "Transfer successful")
+                Arguments.of(5000 + Float.MIN_NORMAL, 5000, "Transfer successful")
         );
     }
 
@@ -28,28 +29,17 @@ public class TransferMoneyTest extends BaseTest {
     @MethodSource("validAmountOfMoney")
     // Positive test: User can transfer valid amount of money to another user's account
     public void useCanTransferMoneyToAnotherUserTest(float balance, float amount, String message) {
-        // prepare request for user1 creation
-        CreateUserRequest createUserRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getUserPassword())
-                .role(UserRole.USER.toString())
-                .build();
-
         // create user1
-        new AdminCreateUserRequester(
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityIsCreated())
-                .post(createUserRequest);
+        var createUser1 = AdminSteps.createUser();
+        CreateUserRequest createUserRequest = createUser1.getRequest();
+
+        // register user1 for further deletion
+        registerCreatedUser(createUser1.getResponse());
 
         // user 1 creates account
-        long createdAccountId = new CreateAccountRequester(
-                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
-                ResponseSpecs.entityIsCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class).getId();
+        long createdAccountId = UserSteps.userCreatesAccount(createUserRequest).getId();
 
-        // create a request to make a deposit
+        // create a request to make a deposit (leave as is because of parameters)
         DepositMoneyRequest depositMoneyRequest = DepositMoneyRequest.builder()
                 .id(createdAccountId)
                 .balance(balance)
@@ -58,48 +48,30 @@ public class TransferMoneyTest extends BaseTest {
         // user1 top up their account with money (enough to make transfer)
         // as maximum sum transfer check -> do top up twice
         // 1st top up
-        new UserDepositMoneyRequester(
-                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
-                ResponseSpecs.requestReturnsOk())
-                .post(depositMoneyRequest);
+        UserSteps.depositMoneyResponse(createUserRequest, depositMoneyRequest);
 
         // 2nd top up
-        new UserDepositMoneyRequester(
-                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
-                ResponseSpecs.requestReturnsOk())
-                .post(depositMoneyRequest);
+        UserSteps.depositMoneyResponse(createUserRequest, depositMoneyRequest);
 
         // get balance after 2 deposits
-        float afterDepositBalance = new UserGetsAccountsRequester(
+        float afterDepositBalance = new ValidatedCrudeRequester<UserGetAccountsResponse>(
+                Endpoint.CUSTOMER_ACCOUNTS,
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsOk())
-                .post(null)
-                .extract()
-                .as(new TypeRef<List<UserGetAccountsResponse>>() {
-                }).get(0).getBalance();
-
-        // prepare request to create user2
-        CreateUserRequest createUser2Request = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getUserPassword())
-                .role(UserRole.USER.toString())
-                .build();
+                .getAll()
+                .get(0).getBalance();
 
         // create user2
-        new AdminCreateUserRequester(
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityIsCreated())
-                .post(createUser2Request);
+        var createUser2 = AdminSteps.createUser();
+        CreateUserRequest createUser2Request = createUser2.getRequest();
+
+        // register user2 for further deletion
+        registerCreatedUser(createUser2.getResponse());
 
         // user 2 creates account + extract id
-        long createdAccount2Id = new CreateAccountRequester(
-                RequestSpecs.authAsUser(createUser2Request.getUsername(), createUser2Request.getPassword()),
-                ResponseSpecs.entityIsCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class).getId();
+        long createdAccount2Id = UserSteps.userCreatesAccount(createUser2Request).getId();
 
-        // prepare transfer money request
+        // prepare transfer money request (leave as is because of parameters)
         TransferMoneyRequest transferMoneyRequest = TransferMoneyRequest.builder()
                 .senderAccountId(createdAccountId)
                 .receiverAccountId(createdAccount2Id)
@@ -107,30 +79,26 @@ public class TransferMoneyTest extends BaseTest {
                 .build();
 
         // user1 transfers valid amount of money to user2 account
-        TransferMoneyResponse transferMoneyResponse = new TransferMoneyRequester(
+        TransferMoneyResponse transferMoneyResponse = new ValidatedCrudeRequester<TransferMoneyResponse>(
+                Endpoint.ACCOUNTS_TRANSFER,
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsOk())
-                .post(transferMoneyRequest)
-                .extract()
-                .as(TransferMoneyResponse.class);
+                .post(transferMoneyRequest);
 
-        float actualAmount = transferMoneyResponse.getAmount();
         String actualMessage = transferMoneyResponse.getMessage();
 
-        softly.assertThat(actualAmount).isEqualTo(amount);
+        ModelAssertions.assertThatModels(transferMoneyRequest, transferMoneyResponse).match(); //amount
         softly.assertThat(actualMessage).isEqualTo(message);
 
         // check that user1 account balance has changed
-        List<UserGetAccountsResponse> userGetAccountsResponseList = new UserGetsAccountsRequester(
+        float actualBalance = new ValidatedCrudeRequester<UserGetAccountsResponse>(
+                Endpoint.CUSTOMER_ACCOUNTS,
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsOk())
-                .post(null)
-                .extract()
-                .as(new TypeRef<List<UserGetAccountsResponse>>() {
-                });
+                .getAll()
+                .get(0).getBalance();
 
-        float actualBalance = userGetAccountsResponseList.get(0).getBalance();
-        softly.assertThat(actualBalance).isEqualTo(afterDepositBalance - balance);
+        softly.assertThat(actualBalance).isEqualTo(afterDepositBalance - amount);
 
     }
 

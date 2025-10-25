@@ -1,4 +1,4 @@
-package iteration1;
+package api.iteration1;
 
 import models.CreateUserResponse;
 import org.assertj.core.api.SoftAssertions;

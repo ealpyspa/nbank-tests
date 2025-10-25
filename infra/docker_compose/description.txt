@@ -1,0 +1,17 @@
+Containers that needs to be started:
+
+1) Backend container nobugsme/nbank:with_validation_fix // backend 4111 -> 4111 (expose out)
+
+2) Frontend container nobugsme/nbank-ui:latest // frontend 80
+
+3) Nginx container (to route user's requests to nginx, then from nginx to backend) // nginx 80 -> 80
+
+4) Selenoid container aerokube/selenoid:latest // selenoid 4444 -> 4444
+
+5) Selenoid UI aerokube/selenoid-ui:latest // selenoid ui 6567 -> 8080
+
+Steps for injecting Docker Compose:
+
+1) Create docker-compose.yaml file.
+2) Describe each docker container (image, port, order of run, common docker network)
+3) script for start all docker containers via docker compose

@@ -1,15 +1,15 @@
 package api.iteration2;
 
-import generators.RandomData;
 import api.iteration1.BaseTest;
+import generators.RandomModelGenerator;
 import models.*;
+import models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import requests.AdminCreateUserRequester;
-import requests.GetCustomerProfileRequester;
-import requests.UserUpdateNameRequester;
+import requests.skeleton.Endpoint;
+import requests.skeleton.requesters.ValidatedCrudeRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 import utils.Utilities;
@@ -21,47 +21,57 @@ public class UpdateUsernameTest extends BaseTest {
     @Test
     public void userCanUpdateNameTest() {
         // prepare request for user creation
-        CreateUserRequest createUserRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getUserPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        // CreateUserRequest createUserRequest = AdminSteps.createUser(); -> not applicable as need to extract "name"
+        CreateUserRequest createUserRequest = RandomModelGenerator.generate(CreateUserRequest.class);
 
-        // send user create request + extract name (=null)
-        String initialName  = new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityIsCreated())
-                .post(createUserRequest)
-                .extract()
-                .as(CreateUserResponse.class).getName();
+        // send user create request + extract name (expected: name=null) + for further extract userId for delete
+        CreateUserResponse createUserResponse = new ValidatedCrudeRequester<CreateUserResponse>(
+                Endpoint.ADMIN_USER,
+                RequestSpecs.adminSpec(),
+                ResponseSpecs.entityIsCreated())
+                .post(createUserRequest);
+
+        // register user for further deletion
+        registerCreatedUser(createUserResponse);
+
+        String initialName = createUserResponse.getName();
 
         // prepare request for name update
-        UserUpdateNameRequest userUpdateNameRequest = UserUpdateNameRequest.builder()
-                .name(RandomData.getUsername())
-                .build();
+        UserUpdateNameRequest userUpdateNameRequest = RandomModelGenerator.generate(UserUpdateNameRequest.class);
 
         // send name update request
-        UserUpdateNameResponse userUpdateNameResponses = new UserUpdateNameRequester(
+        Object userUpdateNameResponse = new ValidatedCrudeRequester<UserUpdateNameResponse>(
+                Endpoint.CUSTOMER_PROFILE_PUT,
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsOk())
-                .post(userUpdateNameRequest)
-                .extract()
-                .as(UserUpdateNameResponse.class);
+                .update(userUpdateNameRequest);
 
-        String actualName = userUpdateNameResponses.getCustomer().getName();
-        String actualMessage = userUpdateNameResponses.getMessage();
+        String actualName = null;
+        String actualMessage = null;
 
-        softly.assertThat(actualName).isEqualTo(userUpdateNameRequest.getName());
+        if (userUpdateNameResponse instanceof UserUpdateNameResponse response) {
+            // API returns JSON
+            actualName = response.getCustomer().getName();
+            actualMessage = response.getMessage();
+        } else if (userUpdateNameResponse instanceof String message) {
+            // API returns plain text
+            actualMessage = message;
+        }
+
+        ModelAssertions.assertThatModels(userUpdateNameRequest, userUpdateNameResponse); //name
         softly.assertThat(actualMessage).isEqualTo(Utilities.PROFILE_UPDATED_MSG);
 
         // check that name has changed
-        GetCustomerProfileResponse getCustomerProfileResponse = new GetCustomerProfileRequester(RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+        String updatedName = new ValidatedCrudeRequester<GetCustomerProfileResponse>(
+                Endpoint.CUSTOMER_PROFILE_GET,
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsOk())
-                .post(null)
-                .extract()
-                .as(GetCustomerProfileResponse.class);
+                .getAll()
+                .get(0).getName();
 
-        String updatedName = getCustomerProfileResponse.getName();
         softly.assertThat(updatedName).isEqualTo(userUpdateNameRequest.getName());
         softly.assertThat(updatedName).isNotEqualTo(initialName);
+
     }
 
     public static Stream<Arguments> notValidName() {
@@ -87,18 +97,22 @@ public class UpdateUsernameTest extends BaseTest {
     @ParameterizedTest
     @MethodSource("notValidName")
     public void userCannotUpdateNameToNotValidTest(String updatedName, String message) {
+        // run a new container to run the test
         // prepare request for user creation
-        CreateUserRequest createUserRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getUserPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        // CreateUserRequest createUserRequest = AdminSteps.createUser(); -> not applicable as need to extract "name"
+        CreateUserRequest createUserRequest = RandomModelGenerator.generate(CreateUserRequest.class);
 
-        // send user create request
-        String initialName = new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityIsCreated())
-                .post(createUserRequest)
-                .extract()
-                .as(CreateUserResponse.class).getName();
+        // send user create request + extract name (expected: name=null) + for further extract userId for delete
+        CreateUserResponse createUserResponse = new ValidatedCrudeRequester<CreateUserResponse>(
+                Endpoint.ADMIN_USER,
+                RequestSpecs.adminSpec(),
+                ResponseSpecs.entityIsCreated())
+                .post(createUserRequest);
+
+        // register user for further deletion
+        registerCreatedUser(createUserResponse);
+
+        String initialName = createUserResponse.getName();
 
         // prepare request for name update
         UserUpdateNameRequest userUpdateNameRequest = UserUpdateNameRequest.builder()
@@ -106,19 +120,18 @@ public class UpdateUsernameTest extends BaseTest {
                 .build();
 
         // send name update request
-        new UserUpdateNameRequester(
+        new ValidatedCrudeRequester<UserUpdateNameResponse>(
+                Endpoint.CUSTOMER_PROFILE_PUT,
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsBadRequestText(message))
-                .post(userUpdateNameRequest);
+                .update(userUpdateNameRequest);
 
         // check that name has not changed
-        String actualName = new GetCustomerProfileRequester(
+        String actualName = new ValidatedCrudeRequester<GetCustomerProfileResponse>(
+                Endpoint.CUSTOMER_PROFILE_GET,
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
                 ResponseSpecs.requestReturnsOk())
-                .post(null)
-                .extract()
-                .as(GetCustomerProfileResponse.class)
-                .getName();
+                .getAll().get(0).getName();
 
         softly.assertThat(actualName).isEqualTo(initialName);
 

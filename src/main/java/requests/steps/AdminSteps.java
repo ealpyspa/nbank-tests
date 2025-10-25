@@ -1,6 +1,7 @@
 package requests.steps;
 
 import generators.RandomModelGenerator;
+import models.BaseModel;
 import models.CreateUserRequest;
 import models.CreateUserResponse;
 import requests.skeleton.Endpoint;
@@ -9,15 +10,23 @@ import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
 public class AdminSteps {
-    public static CreateUserRequest createUser() {
+    public static RequestResponsePair<CreateUserRequest, CreateUserResponse> createUser() {
         CreateUserRequest userRequest = RandomModelGenerator.generate(CreateUserRequest.class);
 
-        new ValidatedCrudeRequester<CreateUserResponse>(
+        CreateUserResponse userResponse = new ValidatedCrudeRequester<CreateUserResponse>(
                 Endpoint.ADMIN_USER,
                 RequestSpecs.adminSpec(),
                 ResponseSpecs.entityIsCreated())
                 .post(userRequest);
 
-        return userRequest;
+        return new RequestResponsePair<>(userRequest, userResponse);
+    }
+
+    public static void deleteUser(long id) {
+        new ValidatedCrudeRequester<BaseModel>(
+                Endpoint.ADMIN_USER_DELETE,
+                RequestSpecs.adminSpec(),
+                ResponseSpecs.requestReturnsOk())
+                .delete(id);
     }
 }

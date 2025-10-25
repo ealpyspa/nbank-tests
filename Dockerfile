@@ -13,11 +13,11 @@ ENV UIBASEURL=${UIBASEURL}
 # Creating a working directory
 WORKDIR /app
 
-# Copying pom.xml file
+# Copying pom.xml file and download dependencies (through GitHub Actions)
 COPY pom.xml .
 
 # Install dependencies and cache them
-RUN mvn dependency:go-offline
+# RUN mvn dependency:go-offline
 
 # Copying the project to working directory
 COPY . .

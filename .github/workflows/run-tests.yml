@@ -42,10 +42,7 @@ jobs:
       - name: Run Swagger coverage
         if: always()
         run: |
-          /.swagger-coverage-commandline/swc/bin/swagger-coverage-commandline \
-          -v \
-          -s http://localhost:4111/v3/api-docs \
-          -i target/swagger-coverage-output
+          .swagger-coverage-commandline/swc/bin/swagger-coverage-commandline -s http://localhost:4111/v3/api-docs -i target/swagger-coverage-output
 
       - name: Load test report history
         uses: actions/checkout@v2
@@ -76,4 +73,4 @@ jobs:
 
       - name: Clean up services
         if: always()
-        run: docker compose down
+        run: cd infra/docker_compose && docker compose down

@@ -38,11 +38,15 @@ jobs:
         env:
           APIBASEURL: http://localhost:4111
           UIBASEURL: http://frontend
-          APIVERSION: /api/v1
+
+      - name: Download Swagger Coverage CLI
+        run: |
+          wget https://github.com/viclovsky/swagger-coverage/releases/download/1.5.0/swagger-coverage-1.5.0.zip -O swagger-coverage.zip
+          unzip swagger-coverage.zip -d .swagger-coverage-commandline
 
       - name: Run Swagger coverage
         if: always()
-        run: .swagger-coverage-commandline/swc/bin/swagger-coverage-commandline -s http://localhost:4111/v3/api-docs -i target/swagger-coverage-output
+        run: .swagger-coverage-commandline/swagger-coverage-commandline-1.5.0/bin/swagger-coverage-commandline -s http://localhost:4111/v3/api-docs -i target/swagger-coverage-output
 
       - name: Load test report history
         uses: actions/checkout@v2

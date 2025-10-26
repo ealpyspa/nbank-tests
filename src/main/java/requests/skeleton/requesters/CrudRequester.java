@@ -1,5 +1,6 @@
 package requests.skeleton.requesters;
 
+import common.helper.StepLogger;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
@@ -18,6 +19,7 @@ public class CrudRequester extends HttpRequest implements CrudEndpointInterface,
 
     @Override
     public ValidatableResponse post(BaseModel model) {
+        return StepLogger.log("POST request to " + endpoint.getUrl(), () -> {
         var body = model == null ? "" : model;
         return given()
                 .spec(requestSpecification)
@@ -26,6 +28,7 @@ public class CrudRequester extends HttpRequest implements CrudEndpointInterface,
                 .then()
                 .assertThat()
                 .spec(responseSpecification);
+        });
     }
 
     @Override
@@ -35,35 +38,41 @@ public class CrudRequester extends HttpRequest implements CrudEndpointInterface,
 
     @Override
     public ValidatableResponse update(BaseModel model) {
-        return given()
+        return StepLogger.log("PUT request to " + endpoint.getUrl(),
+                () -> given()
                 .spec(requestSpecification)
                 .body(model)
                 .put(endpoint.getUrl())
                 .then()
                 .assertThat()
-                .spec(responseSpecification);
+                .spec(responseSpecification)
+        );
     }
 
     @Override
     public ValidatableResponse delete(long id) {
-        return given()
+        return StepLogger.log("DELETE request to " + endpoint.getUrl(),
+                () -> given()
                 .spec(requestSpecification)
                 .pathParam("id", id)
                 .body("")
                 .delete(endpoint.getUrl())
                 .then()
                 .assertThat()
-                .spec(responseSpecification);
+                .spec(responseSpecification)
+        );
     }
 
     @Override
     public ValidatableResponse getAll() {
-        return given()
+        return StepLogger.log("GET all request to " + endpoint.getUrl(),
+                () -> given()
                 .spec(requestSpecification)
                 .body("")
                 .get(endpoint.getUrl())
                 .then()
                 .assertThat()
-                .spec(responseSpecification);
+                .spec(responseSpecification)
+        );
     }
 }

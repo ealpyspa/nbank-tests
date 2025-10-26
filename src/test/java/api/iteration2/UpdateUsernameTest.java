@@ -12,7 +12,7 @@ import requests.skeleton.Endpoint;
 import requests.skeleton.requesters.ValidatedCrudeRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
-import utils.Utilities;
+import common.utils.Utilities;
 
 import java.util.stream.Stream;
 

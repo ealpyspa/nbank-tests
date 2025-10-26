@@ -19,6 +19,7 @@
         <assertj.version>3.25.3</assertj.version>
         <rgxgen.version>1.4</rgxgen.version>
         <allure.version>2.29.1</allure.version>
+        <swagger.version>1.5.0</swagger.version>
     </properties>
     <dependencies>
         <dependency>
@@ -71,6 +72,11 @@
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-assertj</artifactId>
             <version>${allure.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.viclovsky</groupId>
+            <artifactId>swagger-coverage-rest-assured</artifactId>
+            <version>${swagger.version}</version>
         </dependency>
     </dependencies>
 

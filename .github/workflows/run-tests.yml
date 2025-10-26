@@ -41,7 +41,11 @@ jobs:
 
       - name: Run Swagger coverage
         if: always()
-        run: .\.swagger-coverage-commandline\swc\bin\swagger-coverage-commandline.bat -v -s http://localhost:4111/v3/api-docs -i target/swagger-coverage-output
+        run: |
+          /.swagger-coverage-commandline/bin/swagger-coverage-commandline \
+          -v \
+          -s http://localhost:4111/v3/api-docs \
+          -i target/swagger-coverage-output
 
       - name: Load test report history
         uses: actions/checkout@v2

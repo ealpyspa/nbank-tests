@@ -1,0 +1,12 @@
+{
+  "id": "swagger-coverage",
+  "name": "API Coverage",
+  "description": "Swagger API coverage report",
+  "extensions": [
+    {
+      "type": "tab",
+      "name": "API Coverage",
+      "index": "index.html"
+    }
+  ]
+}

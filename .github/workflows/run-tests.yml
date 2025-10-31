@@ -72,10 +72,11 @@ jobs:
       - name: Inject Swagger coverage into report
         if: always()
         run: |
+          latest=${{ github.run_number }}
           sudo chown -R $USER:$USER allure-history || true
-          mkdir -p allure-history/swagger-coverage
-          cp swagger-coverage-report.html allure-history/swagger-coverage/index.html
-          cp allure-plugins/swagger-coverage/plugin.json allure-history/swagger-coverage/plugin.json
+          mkdir -p allure-history/$latest/swagger-coverage
+          cp swagger-coverage-report.html allure-history/$latest/swagger-coverage/index.html
+          cp allure-plugins/swagger-coverage/plugin.json allure-history/$latest/swagger-coverage/plugin.json
 
       - name: Debug list report files
         if: always()
@@ -83,7 +84,7 @@ jobs:
           echo "=== Plugin folder structure ==="
           ls -R allure-history | head -n 50
           echo "=== Plugin JSON ==="
-          cat allure-history/swagger-coverage/plugin.json || echo "plugin.json not found"
+          cat allure-history/${{ github.run_number }}/swagger-coverage/plugin.json || echo "plugin.json not found"
 
       ##- name: Build Swagger coverage report
         ##if: always()

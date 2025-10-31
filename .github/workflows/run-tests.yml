@@ -55,11 +55,11 @@ jobs:
           ref: gh-pages
           path: gh-pages
 
-      - name: Prepare Allure plugin (Swagger coverage)
-        if: always()
-        run: |
-          mkdir -p allure-plugins/swagger-coverage
-          cp swagger-coverage-report.html allure-plugins/swagger-coverage/index.html
+      ##- name: Prepare Allure plugin (Swagger coverage)
+        ##if: always()
+        ##run: |
+          ##mkdir -p allure-plugins/swagger-coverage
+          ##cp swagger-coverage-report.html allure-plugins/swagger-coverage/index.html
 
       - name: Build test report
         uses: simple-elf/allure-report-action@v1.7
@@ -68,7 +68,13 @@ jobs:
           gh_pages: gh-pages
           allure_results: target/allure-results
           allure_history: allure-history
-          plugins: allure-plugins
+
+      - name: Inject Swagger coverage into report
+        if: always()
+        run: |
+          mkdir -p allure-history/swagger-coverage
+          cp swagger-coverage-report.html allure-history/swagger-coverage/index.html
+          cp allure-plugins/swagger-coverage/plugin.json allure-history/swagger-coverage/plugin.json
 
       ##- name: Build Swagger coverage report
         ##if: always()

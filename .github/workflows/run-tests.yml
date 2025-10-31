@@ -69,14 +69,43 @@ jobs:
           allure_results: target/allure-results
           allure_history: allure-history
 
-      - name: Inject Swagger coverage into report
+      - name: Inject Swagger coverage into Allure report
         if: always()
         run: |
           latest=${{ github.run_number }}
           sudo chown -R $USER:$USER allure-history || true
           mkdir -p allure-history/$latest/swagger-coverage
           cp swagger-coverage-report.html allure-history/$latest/swagger-coverage/index.html
-          cp allure-plugins/swagger-coverage/plugin.json allure-history/$latest/swagger-coverage/plugin.json
+          cat > allure-history/$latest/swagger-coverage/plugin.json <<'EOF'
+          {
+            "id": "swagger-coverage",
+            "name": "API Coverage",
+            "description": "Swagger API coverage report",
+            "extensions": [
+              {
+                "type": "tab",
+                "name": "API Coverage",
+                "index": "index.html"
+              }
+            ]
+          }
+          EOF
+
+      - name: Rebuild Allure report to load Swagger plugin
+        if: always()
+        run: |
+          npm install -g allure-commandline@2.29.0
+          allure generate allure-history/${{ github.run_number }} \
+          --output allure-history/${{ github.run_number }} --clean
+
+      ##- name: Inject Swagger coverage into report
+        ##if: always()
+        ##run: |
+          ##latest=${{ github.run_number }}
+          ##sudo chown -R $USER:$USER allure-history || true
+          #mkdir -p allure-history/$latest/swagger-coverage
+          #cp swagger-coverage-report.html allure-history/$latest/swagger-coverage/index.html
+          #cp allure-plugins/swagger-coverage/plugin.json allure-history/$latest/swagger-coverage/plugin.json
 
       - name: Debug list report files
         if: always()

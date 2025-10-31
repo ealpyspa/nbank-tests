@@ -72,6 +72,7 @@ jobs:
       - name: Inject Swagger coverage into report
         if: always()
         run: |
+          sudo chown -R $USER:$USER allure-history || true
           mkdir -p allure-history/swagger-coverage
           cp swagger-coverage-report.html allure-history/swagger-coverage/index.html
           cp allure-plugins/swagger-coverage/plugin.json allure-history/swagger-coverage/plugin.json

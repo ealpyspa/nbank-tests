@@ -48,24 +48,12 @@ jobs:
         if: always()
         run: .swagger-coverage-commandline/swagger-coverage-commandline-1.5.0/bin/swagger-coverage-commandline -s http://localhost:4111/v3/api-docs -i target/swagger-coverage-output
 
-      - name: Debug Swagger coverage output
-        if: always()
-        run: |
-          echo "=== Find Swagger coverage report ==="
-          find . -type f -name "*swagger-coverage*.html" | tee swagger_coverage_files.txt
-
       - name: Load test report history
         uses: actions/checkout@v2
         if: always()
         with:
           ref: gh-pages
           path: gh-pages
-
-      ##- name: Prepare Allure plugin (Swagger coverage)
-        ##if: always()
-        ##run: |
-          ##mkdir -p allure-plugins/swagger-coverage
-          ##cp swagger-coverage-report.html allure-plugins/swagger-coverage/index.html
 
       - name: Build test report
         uses: simple-elf/allure-report-action@v1.7
@@ -75,71 +63,9 @@ jobs:
           allure_results: target/allure-results
           allure_history: allure-history
 
-      - name: Create Swagger plugin.json
+      - name: Build Swagger coverage report
         if: always()
-        run: |
-          mkdir -p allure-plugins/swagger-coverage
-          cat > allure-plugins/swagger-coverage/plugin.json <<'EOF'
-          {
-            "id": "swagger-coverage",
-            "name": "API Coverage",
-            "description": "Swagger API coverage report",
-            "extensions": [
-              {
-                "type": "tab",
-                "name": "API Coverage",
-                "index": "index.html"
-              }
-            ]
-          }
-          EOF
-
-      - name: Inject Swagger coverage into Allure report
-        if: always()
-        run: |
-          latest=${{ github.run_number }}
-          sudo chown -R $USER:$USER allure-history || true
-          mkdir -p allure-history/${latest}/swagger-coverage
-          cp swagger-coverage-report.html allure-history/${latest}/swagger-coverage/index.html
-          cp allure-plugins/swagger-coverage/plugin.json "allure-history/${latest}/swagger-coverage/plugin.json"
-
-      - name: Register Swagger plugin
-        if: always()
-        run: |
-          latest=${{ github.run_number }}
-          mkdir -p "allure-history/${latest}/plugins"
-          echo '[{"id":"swagger-coverage","name":"API Coverage"}]' > "allure-history/${latest}/plugins/index.json"
-
-      - name: Rebuild Allure report to load Swagger plugin
-        if: always()
-        run: |
-          npm install -g allure-commandline@2.29.0
-          allure generate allure-history/${{ github.run_number }} --output allure-history/${{ github.run_number }} --clean
-
-      ##- name: Inject Swagger coverage into report
-        ##if: always()
-        ##run: |
-          ##latest=${{ github.run_number }}
-          ##sudo chown -R $USER:$USER allure-history || true
-          #mkdir -p allure-history/$latest/swagger-coverage
-          #cp swagger-coverage-report.html allure-history/$latest/swagger-coverage/index.html
-          #cp allure-plugins/swagger-coverage/plugin.json allure-history/$latest/swagger-coverage/plugin.json
-
-      - name: Debug list report files
-        if: always()
-        run: |
-          echo "Top level of allure-history:"
-          ls -la allure-history
-          echo "Run folder contents:"
-          ls -la "allure-history/${{ github.run_number }}"
-          echo "Check plugin files:"
-          find "allure-history/${{ github.run_number }}" -maxdepth 3 -type f -name "plugin.json" -o -name "index.html" -print
-          echo "Show plugin.json content:"
-          cat "allure-history/${{ github.run_number }}/swagger-coverage/plugin.json" || echo "no plugin.json found"
-
-      ##- name: Build Swagger coverage report
-        ##if: always()
-        ##run: sudo cp swagger-coverage-report.html allure-history/${{ github.run_number }}
+        run: sudo cp swagger-coverage-report.html allure-history/${{ github.run_number }}
 
       - name: Publish test report
         uses: peaceiris/actions-gh-pages@v3

@@ -75,6 +75,25 @@ jobs:
           allure_results: target/allure-results
           allure_history: allure-history
 
+      - name: Create Swagger plugin.json
+        if: always()
+        run: |
+          mkdir -p allure-plugins/swagger-coverage
+          cat > allure-plugins/swagger-coverage/plugin.json <<'EOF'
+          {
+            "id": "swagger-coverage",
+            "name": "API Coverage",
+            "description": "Swagger API coverage report",
+            "extensions": [
+              {
+                "type": "tab",
+                "name": "API Coverage",
+                "index": "index.html"
+              }
+            ]
+          }
+          EOF
+
       - name: Inject Swagger coverage into Allure report
         if: always()
         run: |

@@ -48,29 +48,6 @@ jobs:
         if: always()
         run: .swagger-coverage-commandline/swagger-coverage-commandline-1.5.0/bin/swagger-coverage-commandline -s http://localhost:4111/v3/api-docs -i target/swagger-coverage-output
 
-      - name: List files in Swagger coverage output
-        run: |
-          echo "📂 Listing files in target/swagger-coverage-output:"
-          ls -R target/swagger-coverage-output
-
-      - name: Check API coverage (Quality Gate)
-        if: always()
-        run: |
-          THRESHOLD=50
-          FILE="target/swagger-coverage-output/coverage.json"
-          if [ ! -f "$FILE" ]; then
-            echo "❌ Coverage file not found: $FILE"
-            exit 1
-          fi
-          COVERAGE=$(jq '.statistic.percent' "$FILE")
-          echo "📊 API Coverage: ${COVERAGE}%"
-          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
-            echo "🚫 Quality gate failed — coverage below ${THRESHOLD}%"
-            exit 1
-          else
-            echo "✅ Coverage OK"
-          fi
-
       - name: Load test report history
         uses: actions/checkout@v2
         if: always()
@@ -93,6 +70,9 @@ jobs:
       - name: Build Swagger coverage report
         if: always()
         run: sudo cp swagger-coverage-report.html allure-history/${{ github.run_number }}
+
+      - name: Quality Gate (API coverage)
+        run: ./check_coverage.sh
 
       - name: Publish test report
         uses: peaceiris/actions-gh-pages@v3

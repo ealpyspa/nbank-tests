@@ -70,16 +70,26 @@ jobs:
       - name: Build Swagger coverage report
         if: always()
         run: |
-          mkdir -p allure-history/swagger-coverage
-          cp swagger-coverage-report.html allure-history/swagger-coverage/index.html
+          mkdir -p swagger-report
+          cp swagger-coverage-report.html swagger-report/index.html
 
-      - name: Publish test && swagger-coverage reports
+      - name: Publish test report
         uses: peaceiris/actions-gh-pages@v3
         if: always()
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
+          destination_dir: ${{ github.run_number }}/allure
+
+      - name: Publish swagger-coverage report
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: swagger-report
+          destination_dir: ${{ github.run_number }}/swagger
 
       - name: Clean up services
         if: always()

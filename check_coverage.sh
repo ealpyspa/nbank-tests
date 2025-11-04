@@ -10,7 +10,7 @@ if [[ ! -f "$HTML_FILE" ]]; then
 fi
 
 echo "📄 Found HTML report: $HTML_FILE"
-COVERAGE=$(grep -oP '(?<=Operations coverage summary</h4>).*?bg-success"[^>]*style="width:\s*\K[0-9]+(\.[0-9]+)?' "$HTML_FILE" | head -n 1)
+COVERAGE=$(grep -oP 'Full coverage:\s*\K[0-9]+([.,][0-9]+)?' "$HTML_FILE" | head -n 1 | tr ',' '.')
 
 if [[ -z "$COVERAGE" ]]; then
   echo "❌ Could not extract coverage from HTML"

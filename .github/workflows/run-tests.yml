@@ -65,9 +65,11 @@ jobs:
 
       - name: Build Swagger coverage report
         if: always()
-        run: sudo cp swagger-coverage-report.html allure-history/${{ github.run_number }}
+        run: |
+          mkdir -p allure-history/swagger-coverage
+          cp swagger-coverage-report.html allure-history/swagger-coverage/index.html
 
-      - name: Publish test report
+      - name: Publish test && swagger-coverage reports
         uses: peaceiris/actions-gh-pages@v3
         if: always()
         with:

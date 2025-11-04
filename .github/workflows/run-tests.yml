@@ -72,7 +72,7 @@ jobs:
         run: sudo cp swagger-coverage-report.html allure-history/${{ github.run_number }}
 
       - name: Make Quality Gate script executable
-        run: chmod +x ./check_coverage.s
+        run: chmod +x ./check_coverage.sh
 
       - name: Quality Gate (API coverage)
         run: ./check_coverage.sh

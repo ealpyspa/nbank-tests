@@ -63,6 +63,10 @@ jobs:
           allure_results: target/allure-results
           allure_history: allure-history
 
+      - name: Fix permissions for allure-history
+        if: always()
+        run: sudo chown -R $USER:$USER allure-history
+
       - name: Build Swagger coverage report
         if: always()
         run: |

@@ -46,13 +46,12 @@ jobs:
 
       - name: Run Swagger coverage
         if: always()
+        run: .swagger-coverage-commandline/swagger-coverage-commandline-1.5.0/bin/swagger-coverage-commandline -s http://localhost:4111/v3/api-docs -i target/swagger-coverage-output
+
+      - name: List files in Swagger coverage output
         run: |
-          mkdir -p target/swagger-coverage-output
-          .swagger-coverage-commandline/swagger-coverage-commandline-1.5.0/bin/swagger-coverage-commandline \
-          -s http://localhost:4111/v3/api-docs \
-          -i target/swagger-coverage-output \
-          --json target/swagger-coverage-output/coverage.json
-        #.swagger-coverage-commandline/swagger-coverage-commandline-1.5.0/bin/swagger-coverage-commandline -s http://localhost:4111/v3/api-docs -i target/swagger-coverage-output
+          echo "📂 Listing files in target/swagger-coverage-output:"
+          ls -R target/swagger-coverage-output
 
       - name: Check API coverage (Quality Gate)
         if: always()

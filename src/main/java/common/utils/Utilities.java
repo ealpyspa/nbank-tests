@@ -1,4 +1,4 @@
-package utils;
+package common.utils;
 
 public class Utilities {
     public static final String PROFILE_UPDATED_MSG = "Profile updated successfully";

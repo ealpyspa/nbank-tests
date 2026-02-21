@@ -10,7 +10,16 @@ Expectations:
 3) Admin Panel is opened.
 4) Token is generated in local storage.
 
-#### 2 - Negative Scenario: admin cannot login with incorrect data
+
+### 2 - Positive Scenario: user can login with correct data
+1) Enter correct username and password.
+2) Click on "Login" button.
+
+Expectations:
+3) User Dashboard is opened.
+4) Token is generated in local storage.
+
+#### 3 - Negative Scenario: user cannot login with incorrect data
 
 My hint: if error is not parsed from API response directly, then all error message should be checked on UI.
 1) Enter incorrect username/password.
@@ -23,7 +32,7 @@ Expectations:
 
 ### Admin Panel Page 
 
-#### 3 - Positive Scenario: Admin can create user 
+#### 4 - Positive Scenario: Admin can create user 
 
 Preconditions: 
 1) Admin login
@@ -37,7 +46,7 @@ Expectations:
 5) User is created on API level
 6) Alert about user successful creation is displayed 
 
-#### 4 - Negative case: Admin cannot create user with invalid data
+#### 5 - Negative case: Admin cannot create user with invalid data
 
 Preconditions:
 1) Admin login
@@ -53,13 +62,13 @@ Expectations:
 
 ### User Dashboard 
 
-#### 5 - User can create account
+#### 6 - User can create account
 
 Preconditions:
 1) Admin login
-2) Admin created user
+2) Admin creates user
 3) User login
-4) User open "User Dashboard"
+4) "User Dashboard" is opened
 
 Steps:
 5) User click on "Create New Account"

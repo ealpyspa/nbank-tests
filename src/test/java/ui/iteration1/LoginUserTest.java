@@ -6,12 +6,13 @@ import com.codeborne.selenide.Selectors;
 import models.CreateUserRequest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.Alert;
 import requests.steps.AdminSteps;
 
 import java.util.Map;
 
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class LoginUserTest {
     @BeforeAll
@@ -36,6 +37,11 @@ public class LoginUserTest {
         $("button").click();
 
         $(Selectors.byText("Admin Panel")).shouldBe(Condition.visible);
+
+        String token = executeJavaScript("return window.localStorage.getItem('authToken');" );
+
+        assertThat(token).isNotNull();
+        assertThat(token).isNotEmpty();
     }
 
     @Test
@@ -50,5 +56,35 @@ public class LoginUserTest {
         $("button").click();
 
         $(Selectors.byClassName("welcome-text")).shouldBe(Condition.visible).shouldHave(Condition.text("Welcome, noname!"));
+
+        String token = executeJavaScript("return window.localStorage.getItem('authToken');");
+
+        assertThat(token).isNotNull();
+        assertThat(token).isNotEmpty();;
+    }
+
+    @Test
+    public void userCannotLoginWithIncorrectDataTest() {
+        CreateUserRequest user = AdminSteps.createUser().getRequest();
+
+        user.setUsername("a");
+
+        open("/login");
+
+        $(Selectors.byAttribute("placeholder", "Username")).sendKeys(user.getUsername());
+        $(Selectors.byAttribute("placeholder", "Password")).sendKeys(user.getPassword());
+        $("button").click();
+
+        Alert alert = switchTo().alert();
+
+        String alertText = alert.getText();
+
+        assertThat(alertText.contains("Invalid credentialsAxiosError: Request failed with status code 401"));
+
+        alert.accept();
+
+        String token = executeJavaScript("return window.localStorage.getItem('authToken');");
+
+        assertThat(token).isNull();
     }
 }

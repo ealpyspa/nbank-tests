@@ -81,12 +81,12 @@ Expectations:
 
 ### Deposit Money
 
-#### 6 - Positive Scenario: User can make a deposit to their account with valid sum
+#### 7 - Positive Scenario: User can make a deposit to their account with valid sum
 Preconditions: 
-1) Admin login
-2) Admin creates user
-3) User login
-4) User creates account
+1) Admin login (via API)
+2) Admin creates user (via API)
+3) User creates account (via API)
+4) User login (via token) 
 
 Steps:
 5) User make deposit to their account with valid sum
@@ -96,12 +96,12 @@ Expectations:
 6) Alert about successful deposit is displayed 
 7) Check that account balance is changed (via API)
 
-#### 7 - Negative Scenario: User cannot make a deposit to their account with invalid sum
+#### 8 - Negative Scenario: User cannot make a deposit to their account with invalid sum
 Preconditions:
-1) Admin login
-2) Admin creates user
-3) User login
-4) User creates account
+1) Admin login (via API)
+2) Admin creates user (via API)
+3) User creates account (via API)
+4) User login (via token)
 
 Steps:
 5) User makes deposit to their account with invalid sum
@@ -113,7 +113,7 @@ Expectations:
 
 ### Transfer Money 
 
-#### 8 - Positive Scenario: User can make a transfer to another user's account
+#### 9 - Positive Scenario: User can make a transfer to another user's account
 Preconditions:
 1) Admin login
 2) Admin creates user1
@@ -122,18 +122,18 @@ Preconditions:
 5) Admin creates user2 
 6) User2 login 
 7) User2 creates account
-8) User2 make a deposit to their account
+8) User1 make a deposit to their account
 
 Steps:
-5) User2 make transfer to user1's account
-   - User2 selects their account, enters user1 name, enters user1 account, enter valid amount of money, check "Confirm details are correct" checkbox and click on "Send Transfer" button. 
+5) User1 make transfer to user2's account
+   - User2 selects their account, enters user2 name, enters user2 account, enter valid amount of money, check "Confirm details are correct" checkbox and click on "Send Transfer" button. 
 
 Expectations:
 6) Alert about successful transfer is displayed
-7) Check that user2's account balance is decreased (via API)
-8) Check that user1's account balance is increased (via API)
+7) Check that user1's account balance is decreased (via API)
+8) Check that user2's account balance is increased (via API)
 
-### 9 - Negative Scenario: User cannot transfer money to not existing account
+### 10 - Negative Scenario: User cannot transfer money to not existing account
 Preconditions:
 1) Admin login
 2) Admin creates user1
@@ -152,7 +152,7 @@ Expectations:
 
 ### Change Username 
 
-### 10 - Positive Scenario: User can change their name to a valid one
+### 11 - Positive Scenario: User can change their name to a valid one
 Preconditions:
 1) Admin login
 2) Admin creates user
@@ -164,9 +164,10 @@ Steps:
 
 Expectations:
 7) Alert about successful name change is displayed 
-8) Check that user's name is changed (via API)
+8) Refresh page and see the new name is diaplyed 
+9) Check that user's name is changed (via API)
 
-### 11 - Negative Scenario: User cannot change their name to invalid one
+### 12 - Negative Scenario: User cannot change their name to invalid one
 Preconditions:
 1) Admin login
 2) Admin creates user

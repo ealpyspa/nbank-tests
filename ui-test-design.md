@@ -10,7 +10,6 @@ Expectations:
 3) Admin Panel is opened.
 4) Token is generated in local storage.
 
-
 ### 2 - Positive Scenario: user can login with correct data
 1) Enter correct username and password.
 2) Click on "Login" button.
@@ -148,7 +147,6 @@ Steps:
 Expectations:
 6) Alert about not successful transfer is displayed 
 7) Check that user1's account balance is not changed (via API)
-
 
 ### Change Username 
 

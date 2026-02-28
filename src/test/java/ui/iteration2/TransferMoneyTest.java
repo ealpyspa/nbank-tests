@@ -33,7 +33,6 @@ public class TransferMoneyTest {
                 Map.of("enableVNC", true, "enableLog", true));
     }
 
-
     @ParameterizedTest
     @CsvSource("1, 1")
     public void userCanMakeTransferToAccountTest(float balance, float amount) {
@@ -90,7 +89,6 @@ public class TransferMoneyTest {
         $(Selectors.byText(createdAccountNumber)).click();
 
         $(Selectors.byAttribute("placeholder","Enter recipient name")).sendKeys(user2.getUsername());
-
 
         $(Selectors.byAttribute("placeholder","Enter recipient account number")).sendKeys(createdAccount2Number);
 

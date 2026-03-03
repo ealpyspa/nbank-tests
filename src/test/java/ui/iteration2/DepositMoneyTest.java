@@ -2,21 +2,21 @@ package ui.iteration2;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selectors;
-import models.CreateAccountResponse;
-import models.CreateUserRequest;
-import models.LoginUserRequest;
-import models.UserGetAccountsResponse;
+import api.models.CreateAccountResponse;
+import api.models.CreateUserRequest;
+import api.models.LoginUserRequest;
+import api.models.UserGetAccountsResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.openqa.selenium.Alert;
-import requests.skeleton.Endpoint;
-import requests.skeleton.requesters.CrudRequester;
-import requests.skeleton.requesters.ValidatedCrudeRequester;
-import requests.steps.AdminSteps;
-import requests.steps.UserSteps;
-import specs.RequestSpecs;
-import specs.ResponseSpecs;
+import api.requests.skeleton.Endpoint;
+import api.requests.skeleton.requesters.CrudRequester;
+import api.requests.skeleton.requesters.ValidatedCrudeRequester;
+import api.requests.steps.AdminSteps;
+import api.requests.steps.UserSteps;
+import api.specs.RequestSpecs;
+import api.specs.ResponseSpecs;
 
 import java.util.Map;
 
@@ -89,7 +89,7 @@ public class DepositMoneyTest {
 
         alert.accept();
 
-        float actualBalance = new ValidatedCrudeRequester<UserGetAccountsResponse>(
+        float actualBalance = new ValidatedCrudeRequester<CreateAccountResponse>(
                 Endpoint.CUSTOMER_ACCOUNTS,
                 RequestSpecs.authAsUser(user.getUsername(), user.getPassword()),
                 ResponseSpecs.requestReturnsOk())

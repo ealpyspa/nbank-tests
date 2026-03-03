@@ -2,7 +2,7 @@
 
 ### Login Page 
 
-#### 1 - Positive Scenario: admin can login with correct data 
+#### 1 - Positive Scenario: admin can login with correct data ===> LoginUserTest
 1) Enter correct username and password.
 2) Click on "Login" button.
 
@@ -10,7 +10,7 @@ Expectations:
 3) Admin Panel is opened.
 4) Token is generated in local storage.
 
-### 2 - Positive Scenario: user can login with correct data
+### 2 - Positive Scenario: user can login with correct data ===> LoginUserTest
 1) Enter correct username and password.
 2) Click on "Login" button.
 
@@ -18,7 +18,7 @@ Expectations:
 3) User Dashboard is opened.
 4) Token is generated in local storage.
 
-#### 3 - Negative Scenario: user cannot login with incorrect data
+#### 3 - Negative Scenario: user cannot login with incorrect data ===> LoginUserTest
 
 My hint: if error is not parsed from API response directly, then all error message should be checked on UI.
 1) Enter incorrect username/password.
@@ -31,7 +31,7 @@ Expectations:
 
 ### Admin Panel Page 
 
-#### 4 - Positive Scenario: Admin can create user 
+#### 4 - Positive Scenario: Admin can create user ===> CreateUserTest
 
 Preconditions: 
 1) Admin login
@@ -45,7 +45,7 @@ Expectations:
 5) User is created on API level
 6) Alert about user successful creation is displayed 
 
-#### 5 - Negative case: Admin cannot create user with invalid data
+#### 5 - Negative case: Admin cannot create user with invalid data ===> CreateUserTest
 
 Preconditions:
 1) Admin login
@@ -61,7 +61,7 @@ Expectations:
 
 ### User Dashboard 
 
-#### 6 - User can create account
+#### 6 - User can create account ===> CreateAccountTest
 
 Preconditions:
 1) Admin login

@@ -98,4 +98,7 @@ public class ValidatedCrudeRequester<T extends BaseModel> extends HttpRequest im
         return Arrays.asList(array);
     }
 
+    public T getOne() {
+        return getAll().get(0);
+    }
 }

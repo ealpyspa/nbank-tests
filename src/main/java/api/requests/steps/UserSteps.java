@@ -1,9 +1,6 @@
 package api.requests.steps;
 
-import api.models.CreateAccountResponse;
-import api.models.CreateUserRequest;
-import api.models.DepositMoneyRequest;
-import api.models.UserGetAccountsResponse;
+import api.models.*;
 import api.requests.skeleton.Endpoint;
 import api.requests.skeleton.requesters.CrudRequester;
 import api.requests.skeleton.requesters.ValidatedCrudeRequester;
@@ -49,5 +46,13 @@ public class UserSteps {
                 Endpoint.CUSTOMER_ACCOUNTS,
                 RequestSpecs.authAsUser(username, password),
                 ResponseSpecs.requestReturnsOk()).getAll(UserGetAccountsResponse[].class);
+    }
+
+    public GetCustomerProfileResponse getCustomerProfile() {
+        return new ValidatedCrudeRequester<GetCustomerProfileResponse>(
+                Endpoint.CUSTOMER_PROFILE_GET,
+                RequestSpecs.authAsUser(username, password),
+                ResponseSpecs.requestReturnsOk())
+                .getOne();
     }
 }

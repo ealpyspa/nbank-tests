@@ -1,10 +1,10 @@
 package api.iteration1;
 
-import models.CreateUserResponse;
+import api.models.CreateUserResponse;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import requests.steps.AdminSteps;
+import api.requests.steps.AdminSteps;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,5 +34,4 @@ public class BaseTest {
     public static void registerCreatedUser(CreateUserResponse user) {
         createUserResponses.add(user);
     }
-
 }

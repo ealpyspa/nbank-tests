@@ -1,38 +1,21 @@
 package ui.iteration2;
 
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selectors;
-import generators.RandomModelGenerator;
-import models.*;
-import org.junit.jupiter.api.BeforeAll;
+import api.generators.RandomModelGenerator;
+import api.models.CreateAccountResponse;
+import api.models.CreateUserRequest;
+import api.models.DepositMoneyRequest;
+import api.requests.steps.AdminSteps;
+import api.requests.steps.UserSteps;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.openqa.selenium.Alert;
-import requests.skeleton.Endpoint;
-import requests.skeleton.requesters.CrudRequester;
-import requests.skeleton.requesters.ValidatedCrudeRequester;
-import requests.steps.AdminSteps;
-import requests.steps.UserSteps;
-import specs.RequestSpecs;
-import specs.ResponseSpecs;
+import ui.BaseUiTest;
+import ui.pages.BankAlert;
+import ui.pages.MakeTransferPage;
+import ui.pages.UserDashboard;
 
-import java.util.Map;
-
-import static com.codeborne.selenide.Selenide.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TransferMoneyTest {
-    @BeforeAll
-    public static void setupSelenoid() {
-        Configuration.remote = "http://localhost:4444/wd/hub";
-        Configuration.baseUrl = "http://192.168.1.67:3000";
-        Configuration.browser = "chrome";
-        Configuration.browserSize = "1920x1080";
-
-        Configuration.browserCapabilities.setCapability("selenoid:options",
-                Map.of("enableVNC", true, "enableLog", true));
-    }
-
+public class TransferMoneyTest extends BaseUiTest {
     @ParameterizedTest
     @CsvSource("1, 1")
     public void userCanMakeTransferToAccountTest(float balance, float amount) {
@@ -51,12 +34,7 @@ public class TransferMoneyTest {
 
         UserSteps.depositMoneyResponse(user1, depositMoneyRequest);
 
-        float afterDepositBalance = new ValidatedCrudeRequester<UserGetAccountsResponse>(
-                Endpoint.CUSTOMER_ACCOUNTS,
-                RequestSpecs.authAsUser(user1.getUsername(), user1.getPassword()),
-                ResponseSpecs.requestReturnsOk())
-                .getAll()
-                .get(0).getBalance();
+        float afterDepositBalance = new UserSteps(user1.getUsername(), user1.getPassword()).getAllAccounts().getFirst().getBalance();
 
         CreateUserRequest user2 = AdminSteps.createUser().getRequest();
 
@@ -66,61 +44,18 @@ public class TransferMoneyTest {
 
         float beforeTransferBalance = createAccountResponse2.getBalance();
 
-        String userAuthHeader = new CrudRequester(
-                Endpoint.LOGIN,
-                RequestSpecs.unauthSpec(),
-                ResponseSpecs.requestReturnsOk())
-                .post(LoginUserRequest.builder().username(user1.getUsername()).password(user1.getPassword()).build())
-                .extract()
-                .header("Authorization");
+        authAsUser(user1);
 
-        open("/");
+        // Alert checks by pattern (without amount and account2Number checks)
+        new UserDashboard().open().makeTransferClick().getPage(MakeTransferPage.class)
+                .makeTransfer(createdAccountNumber, user2.getUsername(), createdAccount2Number, String.valueOf(amount))
+                .checkAlertAndAcceptMatches(BankAlert.MONEY_TRANSFERRED.getMessage());
 
-        executeJavaScript("localStorage.setItem('authToken', arguments[0]);", userAuthHeader);
-
-        open("/dashboard");
-
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).click();
-
-        assertThat($(Selectors.byText("\uD83D\uDD04 Make a Transfer")).isDisplayed()).isTrue();
-
-        $(Selectors.byText("-- Choose an account --")).click();
-
-        $(Selectors.byText(createdAccountNumber)).click();
-
-        $(Selectors.byAttribute("placeholder","Enter recipient name")).sendKeys(user2.getUsername());
-
-        $(Selectors.byAttribute("placeholder","Enter recipient account number")).sendKeys(createdAccount2Number);
-
-        String amountText = String.valueOf(amount);
-
-        $(Selectors.byAttribute("placeholder","Enter amount")).sendKeys(amountText);
-
-        $(Selectors.byId("confirmCheck")).click();
-
-        $(Selectors.byText("\uD83D\uDE80 Send Transfer")).click();
-
-        Alert alert = switchTo().alert();
-
-        assertThat(alert.getText()).matches("✅ Successfully transferred \\$" + amount + " to account " + createdAccount2Number + "!");
-
-        alert.accept();
-
-        float afterTransferBalance1 = new ValidatedCrudeRequester<UserGetAccountsResponse>(
-                Endpoint.CUSTOMER_ACCOUNTS,
-                RequestSpecs.authAsUser(user1.getUsername(), user1.getPassword()),
-                ResponseSpecs.requestReturnsOk())
-                .getAll()
-                .get(0).getBalance();
+        float afterTransferBalance1 = new UserSteps(user1.getUsername(), user1.getPassword()).getAllAccounts().getFirst().getBalance();
 
         assertThat(afterTransferBalance1).isEqualTo(afterDepositBalance - amount);
 
-        float afterTransferBalance2 = new ValidatedCrudeRequester<UserGetAccountsResponse>(
-                Endpoint.CUSTOMER_ACCOUNTS,
-                RequestSpecs.authAsUser(user2.getUsername(), user2.getPassword()),
-                ResponseSpecs.requestReturnsOk())
-                .getAll()
-                .get(0).getBalance();
+        float afterTransferBalance2 = new UserSteps(user2.getUsername(), user2.getPassword()).getAllAccounts().getFirst().getBalance();
 
         assertThat(afterTransferBalance2).isEqualTo(beforeTransferBalance + amount);
     }
@@ -143,61 +78,17 @@ public class TransferMoneyTest {
 
         UserSteps.depositMoneyResponse(user1, depositMoneyRequest);
 
-        float afterDepositBalance = new ValidatedCrudeRequester<UserGetAccountsResponse>(
-                Endpoint.CUSTOMER_ACCOUNTS,
-                RequestSpecs.authAsUser(user1.getUsername(), user1.getPassword()),
-                ResponseSpecs.requestReturnsOk())
-                .getAll()
-                .get(0).getBalance();
+        float afterDepositBalance = new UserSteps(user1.getUsername(), user1.getPassword()).getAllAccounts().getFirst().getBalance();
 
-        String userAuthHeader = new CrudRequester(
-                Endpoint.LOGIN,
-                RequestSpecs.unauthSpec(),
-                ResponseSpecs.requestReturnsOk())
-                .post(LoginUserRequest.builder().username(user1.getUsername()).password(user1.getPassword()).build())
-                .extract()
-                .header("Authorization");
+        String randomUsernameAndAccountNumber = RandomModelGenerator.generate(CreateUserRequest.class).getUsername(); // same value for randomUserAccount
 
-        open("/");
+        authAsUser(user1);
 
-        executeJavaScript("localStorage.setItem('authToken', arguments[0]);", userAuthHeader);
+        new UserDashboard().open().makeTransferClick().getPage(MakeTransferPage.class)
+                .makeTransfer(createdAccountNumber, randomUsernameAndAccountNumber, randomUsernameAndAccountNumber, String.valueOf(amount))
+                .checkAlertAndAccept(BankAlert.NO_USER_FOUND_WITH_ACCOUNT_NUMBER.getMessage());
 
-        open("/dashboard");
-
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).click();
-
-        assertThat($(Selectors.byText("\uD83D\uDD04 Make a Transfer")).isDisplayed()).isTrue();
-
-        $(Selectors.byText("-- Choose an account --")).click();
-
-        $(Selectors.byText(createdAccountNumber)).click();
-
-        String randomUsernameAndAccountNumber= RandomModelGenerator.generate(CreateUserRequest.class).getUsername(); // same value for randomUserAccount
-
-        $(Selectors.byAttribute("placeholder","Enter recipient name")).sendKeys(randomUsernameAndAccountNumber);
-
-        $(Selectors.byAttribute("placeholder","Enter recipient account number")).sendKeys(randomUsernameAndAccountNumber);
-
-        String amountText = String.valueOf(amount);
-
-        $(Selectors.byAttribute("placeholder","Enter amount")).sendKeys(amountText);
-
-        $(Selectors.byId("confirmCheck")).click();
-
-        $(Selectors.byText("\uD83D\uDE80 Send Transfer")).click();
-
-        Alert alert = switchTo().alert();
-
-        assertThat(alert.getText()).contains("❌ No user found with this account number.");
-
-        alert.accept();
-
-        float afterTransferBalance1 = new ValidatedCrudeRequester<UserGetAccountsResponse>(
-                Endpoint.CUSTOMER_ACCOUNTS,
-                RequestSpecs.authAsUser(user1.getUsername(), user1.getPassword()),
-                ResponseSpecs.requestReturnsOk())
-                .getAll()
-                .get(0).getBalance();
+        float afterTransferBalance1 = new UserSteps(user1.getUsername(), user1.getPassword()).getAllAccounts().getFirst().getBalance();
 
         assertThat(afterTransferBalance1).isEqualTo(afterDepositBalance);
     }

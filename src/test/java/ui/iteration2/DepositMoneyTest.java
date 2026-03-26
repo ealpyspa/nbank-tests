@@ -25,7 +25,7 @@ public class DepositMoneyTest extends BaseUiTest {
 
         String createdAccountNumber = createAccountResponse.getAccountNumber();
 
-        authAsUser(user);
+        //authAsUser(user);
 
         // Alert checks by pattern (without amount and accountNumber checks)
         new UserDashboard().open().depositMoneyClick().getPage(DepositMoneyPage.class)
@@ -49,7 +49,7 @@ public class DepositMoneyTest extends BaseUiTest {
 
         String createdAccountNumber = createAccountResponse.getAccountNumber();
 
-        authAsUser(user);
+        //authAsUser(user);
 
         new UserDashboard().open().depositMoneyClick().getPage(DepositMoneyPage.class)
                 .depositMoney(createdAccountNumber,amount)

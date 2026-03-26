@@ -3,6 +3,7 @@ package ui.iteration1;
 import api.models.CreateUserRequest;
 import api.requests.steps.AdminSteps;
 import com.codeborne.selenide.Condition;
+import common.annotations.Browsers;
 import org.junit.jupiter.api.Test;
 import ui.BaseUiTest;
 import ui.pages.AdminPanel;
@@ -15,6 +16,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class LoginUserTest extends BaseUiTest {
     @Test
+    @Browsers({"chrome"})
     public void adminCanLoginWithCorrectDataTest() {
         CreateUserRequest admin = CreateUserRequest.getAdmin();
 
@@ -28,6 +30,7 @@ public class LoginUserTest extends BaseUiTest {
     }
 
     @Test
+    @Browsers({"chrome"})
     public void userCanLoginWithCorrectDataTest() {
         CreateUserRequest user = AdminSteps.createUser().getRequest();
 
@@ -41,6 +44,7 @@ public class LoginUserTest extends BaseUiTest {
     }
 
     @Test
+    @Browsers({"chrome"})
     public void userCannotLoginWithIncorrectDataTest() {
         CreateUserRequest user = AdminSteps.createUser().getRequest();
 

@@ -33,7 +33,7 @@ public class UpdateUsernameTest extends BaseUiTest {
 
         String initialName = createUserResponse.getName();
 
-        authAsUser(user);
+        //authAsUser(user);
 
         new UserDashboard().open().usernameClick().getPage(EditProfilePage.class)
                 .updateName(newName)
@@ -61,7 +61,7 @@ public class UpdateUsernameTest extends BaseUiTest {
 
         String initialName = createUserResponse.getName();
 
-        authAsUser(user);
+        //authAsUser(user);
 
         new UserDashboard().open().usernameClick().getPage(EditProfilePage.class)
                 .updateName(newName)

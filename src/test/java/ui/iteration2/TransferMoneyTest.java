@@ -44,7 +44,7 @@ public class TransferMoneyTest extends BaseUiTest {
 
         float beforeTransferBalance = createAccountResponse2.getBalance();
 
-        authAsUser(user1);
+        //authAsUser(user1);
 
         // Alert checks by pattern (without amount and account2Number checks)
         new UserDashboard().open().makeTransferClick().getPage(MakeTransferPage.class)
@@ -82,7 +82,7 @@ public class TransferMoneyTest extends BaseUiTest {
 
         String randomUsernameAndAccountNumber = RandomModelGenerator.generate(CreateUserRequest.class).getUsername(); // same value for randomUserAccount
 
-        authAsUser(user1);
+        //authAsUser(user1);
 
         new UserDashboard().open().makeTransferClick().getPage(MakeTransferPage.class)
                 .makeTransfer(createdAccountNumber, randomUsernameAndAccountNumber, randomUsernameAndAccountNumber, String.valueOf(amount))

@@ -1,13 +1,7 @@
 package ui.iteration2;
 
-import api.generators.RandomModelGenerator;
-import api.models.CreateUserRequest;
-import api.models.CreateUserResponse;
-import api.requests.skeleton.Endpoint;
-import api.requests.skeleton.requesters.ValidatedCrudeRequester;
-import api.requests.steps.UserSteps;
-import api.specs.RequestSpecs;
-import api.specs.ResponseSpecs;
+import common.annotations.UserSession;
+import common.storage.SessionStorage;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import ui.BaseUiTest;
@@ -20,27 +14,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UpdateUsernameTest extends BaseUiTest {
     @ParameterizedTest
     @ValueSource(strings = "Test Testov")
+    @UserSession
     public void userCanUpdateNameToValidTest(String newName) {
-        // CreateUserRequest createUserRequest = AdminSteps.createUser(); -> not applicable as need to extract "name"
-        CreateUserRequest user = RandomModelGenerator.generate(CreateUserRequest.class);
-
-        // send user create request + extract name (expected: name=null) + for further extract userId for delete
-        CreateUserResponse createUserResponse = new ValidatedCrudeRequester<CreateUserResponse>(
-                Endpoint.ADMIN_USER,
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityIsCreated())
-                .post(user);
-
-        String initialName = createUserResponse.getName();
-
-        authAsUser(user);
+        String initialName = SessionStorage.getSteps().getCustomerProfile().getName();
 
         new UserDashboard().open().usernameClick().getPage(EditProfilePage.class)
                 .updateName(newName)
                 .checkAlertAndAccept(BankAlert.NAME_UPDATED_SUCCESSFULLY.getMessage())
                 .checkUpdatedName(newName);
 
-        String updatedName = new UserSteps(user.getUsername(), user.getPassword()).getCustomerProfile().getName();
+        String updatedName = SessionStorage.getSteps().getCustomerProfile().getName();
 
         assertThat(updatedName).isEqualTo(newName);
         assertThat(updatedName).isNotEqualTo(initialName);
@@ -48,20 +31,9 @@ public class UpdateUsernameTest extends BaseUiTest {
 
     @ParameterizedTest
     @ValueSource(strings = "a")
+    @UserSession
     public void userCannotUpdateNameToInvalidTest(String newName) {
-        // CreateUserRequest createUserRequest = AdminSteps.createUser(); -> not applicable as need to extract "name"
-        CreateUserRequest user = RandomModelGenerator.generate(CreateUserRequest.class);
-
-        // send user create request + extract name (expected: name=null) + for further extract userId for delete
-        CreateUserResponse createUserResponse = new ValidatedCrudeRequester<CreateUserResponse>(
-                Endpoint.ADMIN_USER,
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityIsCreated())
-                .post(user);
-
-        String initialName = createUserResponse.getName();
-
-        authAsUser(user);
+        String initialName = SessionStorage.getSteps().getCustomerProfile().getName();
 
         new UserDashboard().open().usernameClick().getPage(EditProfilePage.class)
                 .updateName(newName)
@@ -69,7 +41,7 @@ public class UpdateUsernameTest extends BaseUiTest {
                 .checkAlertAndAccept(BankAlert.ENTER_VALID_NAME.getMessage())
                 .checkNotUpdatedName(newName);
 
-        String actualName = new UserSteps(user.getUsername(), user.getPassword()).getCustomerProfile().getName();
+        String actualName = SessionStorage.getSteps().getCustomerProfile().getName();
 
         assertThat(actualName).isEqualTo(initialName);
     }

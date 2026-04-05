@@ -18,8 +18,8 @@ public class DepositMoneyTest extends BaseTest {
 
     public static Stream<Arguments> validAmountOfMoney() {
         return Stream.of(
-                // minimal allowed amount of money
-                Arguments.of(Float.MIN_NORMAL),
+                // minimal allowed amount of money = 0.01
+                Arguments.of(0.01F),
                 // maximum allowed amount of money
                 Arguments.of(5000)
         );

@@ -3,9 +3,13 @@ package ui.pages;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.SelenideElement;
+import common.utils.RetryUtils;
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.Keys;
 
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.refresh;
+import java.util.Arrays;
+
+import static com.codeborne.selenide.Selenide.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EditProfilePage extends BasePage<EditProfilePage> {
@@ -17,18 +21,53 @@ public class EditProfilePage extends BasePage<EditProfilePage> {
         return "/edit-profile";
     }
 
-    public EditProfilePage updateName(String newName) {
-        newNameInput.shouldBe(Condition.editable).click();
+    public EditProfilePage updateNameExpectSuccess(String newName) {
+        return updateNameExpectingAlert(newName, BankAlert.NAME_UPDATED_SUCCESSFULLY.getMessage());
+    }
 
-        newNameInput.shouldBe(Condition.focused);
+    public EditProfilePage updateNameExpectInvalid(String newName, String... expectedInvalidAlerts) {
+        return updateNameExpectingAlert(newName, expectedInvalidAlerts);
+    }
 
-        newNameInput.clear();
-        newNameInput.shouldHave(Condition.exactValue(""));
+    private EditProfilePage updateNameExpectingAlert(String newName, String... expectedAlerts) {
+        final String[] lastInputValue = {null};
+        final String[] lastAlertText = {null};
 
-        newNameInput.sendKeys(newName);
-        newNameInput.shouldHave(Condition.exactValue(newName));
+        try {
+            RetryUtils.retry(
+                    () -> {
+                        newNameInput.shouldBe(Condition.visible, Condition.editable).click();
+                        newNameInput.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
+                        newNameInput.sendKeys(newName);
+                        newNameInput.pressTab();
 
-        saveChangesButton.click();
+                        lastInputValue[0] = newNameInput.getValue();
+
+                        saveChangesButton.shouldBe(Condition.visible, Condition.enabled).click();
+
+                        Alert alert = switchTo().alert();
+                        String text = alert.getText();
+                        lastAlertText[0] = text;
+
+                        boolean isExpected = Arrays.stream(expectedAlerts).anyMatch(text::contains);
+                        if (!isExpected) {
+                            alert.accept();
+                        }
+                        return text;
+                    },
+                    text -> text != null && Arrays.stream(expectedAlerts).anyMatch(text::contains),
+                    3,
+                    300
+            );
+        } catch (Exception e) {
+            throw new AssertionError(
+                    "Failed to get expected alert after retries. expectedAlerts=" + Arrays.toString(expectedAlerts) +
+                            ", expectedName='" + newName + "', actualInput='" + lastInputValue[0] +
+                            "', lastAlert='" + lastAlertText[0] + "'",
+                    e
+            );
+        }
+
         return this;
     }
 

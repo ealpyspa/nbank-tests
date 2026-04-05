@@ -40,3 +40,12 @@ build/
 
 ### Environment variables ###
 .env
+
+# Reports / test output
+allure-report/
+
+# Swagger coverage (generated files)
+.swagger-coverage-commandline/
+swagger-coverage-*.zip
+swagger-coverage-report.html
+swagger-coverage-results.json

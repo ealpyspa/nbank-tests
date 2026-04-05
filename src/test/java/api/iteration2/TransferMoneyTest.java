@@ -19,7 +19,7 @@ public class TransferMoneyTest extends BaseTest {
     public static Stream<Arguments> validAmountOfMoney() {
         return Stream.of(
                 // minimal sum of transfer
-                Arguments.of(Float.MIN_NORMAL, Float.MIN_NORMAL, "Transfer successful"),
+                Arguments.of(0.01F, 0.01F, "Transfer successful"),
                 // maximum sum of transfer
                 Arguments.of(5000 + Float.MIN_NORMAL, 5000, "Transfer successful")
         );

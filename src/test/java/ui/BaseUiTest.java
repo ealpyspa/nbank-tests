@@ -8,13 +8,13 @@ import com.codeborne.selenide.Configuration;
 import common.extension.AdminSessionExtension;
 import common.extension.BrowserMatchExtension;
 import common.extension.UserSessionExtension;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 
-import static com.codeborne.selenide.Selenide.executeJavaScript;
-import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.*;
 
 @ExtendWith(AdminSessionExtension.class)
 @ExtendWith(UserSessionExtension.class)
@@ -26,9 +26,15 @@ public class BaseUiTest extends BaseTest {
         Configuration.baseUrl = Config.getProperty("uiBaseUrl");
         Configuration.browser = Config.getProperty("browser");
         Configuration.browserSize = Config.getProperty("browserSize");
-
         Configuration.browserCapabilities.setCapability("selenoid:options",
                 Map.of("enableVNC", true, "enableLog", true));
+    }
+
+    @AfterEach
+    public void resetBrowserState(){
+        open("/");
+        clearBrowserCookies();
+        clearBrowserLocalStorage();
     }
 
     public void authAsUser(String username, String password) {

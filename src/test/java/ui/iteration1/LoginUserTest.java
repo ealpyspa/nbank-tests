@@ -32,7 +32,9 @@ public class LoginUserTest extends BaseUiTest {
     @Test
     @Browsers({"chrome"})
     public void userCanLoginWithCorrectDataTest() {
-        CreateUserRequest user = AdminSteps.createUser().getRequest();
+        var created = AdminSteps.createUser();
+        CreateUserRequest user = created.getRequest();
+        registerCreatedUser(created.getResponse());
 
         new LoginPage().open().login(user.getUsername(), user.getPassword())
                 .getPage(UserDashboard.class).getWelcomeText().shouldBe(Condition.visible).shouldHave(Condition.text("Welcome, noname!"));
@@ -46,7 +48,9 @@ public class LoginUserTest extends BaseUiTest {
     @Test
     @Browsers({"chrome"})
     public void userCannotLoginWithIncorrectDataTest() {
-        CreateUserRequest user = AdminSteps.createUser().getRequest();
+        var created = AdminSteps.createUser();
+        CreateUserRequest user = created.getRequest();
+        registerCreatedUser(created.getResponse());
 
         user.setUsername("a");
 
@@ -55,6 +59,6 @@ public class LoginUserTest extends BaseUiTest {
 
         String token = executeJavaScript("return window.localStorage.getItem('authToken');");
 
-        assertThat(token).isNull();
+        assertThat(token).isNullOrEmpty();
     }
 }

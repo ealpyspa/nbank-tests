@@ -8,6 +8,7 @@ import api.requests.steps.AdminSteps;
 import common.annotations.AdminSession;
 import org.junit.jupiter.api.Test;
 import ui.BaseUiTest;
+import ui.elements.UserBadge;
 import ui.pages.AdminPanel;
 import ui.pages.BankAlert;
 
@@ -20,13 +21,18 @@ public class CreateUserTest extends BaseUiTest {
     public void adminCanCreateUserTest() {
         CreateUserRequest newUser = RandomModelGenerator.generate(CreateUserRequest.class);
 
-        assertTrue(new AdminPanel().open().createUser(newUser.getUsername(), newUser.getPassword())
+        UserBadge newUSerBadge = new AdminPanel().open().createUser(newUser.getUsername(), newUser.getPassword())
                 .checkAlertAndAccept(BankAlert.USER_CREATED_SUCCESSFULLY.getMessage())
-                .getAllUsers().stream().anyMatch(userBadge -> userBadge.getUsername().equals(newUser.getUsername())));
+                .findUserByUsername(newUser.getUsername());
+
+        assertThat(newUSerBadge)
+                .as("UserBadge should exist on Dashboard after user creation.").isNotNull();
 
         CreateUserResponse createdUser = AdminSteps.getAllUsers().stream()
                 .filter(user -> user.getUsername().equals(newUser.getUsername()))
                 .findFirst().get();
+
+        registerCreatedUser(createdUser);
 
         ModelAssertions.assertThatModels(newUser, createdUser).match();
     }

@@ -157,7 +157,7 @@ Preconditions:
 3) User login
 
 Steps:
-5) User clicks on username -> "Edit Profile" is opened
+5) User clicks on username -> "Edit Profile" is opened (changed to open "EditProfilePAge directly)
 6) User enters valid name and click on "Save Changes" button
 
 Expectations:

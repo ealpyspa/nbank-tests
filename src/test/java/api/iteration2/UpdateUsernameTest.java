@@ -17,7 +17,7 @@ import common.utils.Utilities;
 import java.util.stream.Stream;
 
 public class UpdateUsernameTest extends BaseTest {
-    //Positive test: Authorised user can update their name to another valid name (2 words, only letters, devided by space)
+    //Positive test: Authorised user can update their name to another valid name (2 words, only letters, divided by space)
     @Test
     public void userCanUpdateNameTest() {
         // prepare request for user creation
@@ -97,7 +97,6 @@ public class UpdateUsernameTest extends BaseTest {
     @ParameterizedTest
     @MethodSource("notValidName")
     public void userCannotUpdateNameToNotValidTest(String updatedName, String message) {
-        // run a new container to run the test
         // prepare request for user creation
         // CreateUserRequest createUserRequest = AdminSteps.createUser(); -> not applicable as need to extract "name"
         CreateUserRequest createUserRequest = RandomModelGenerator.generate(CreateUserRequest.class);

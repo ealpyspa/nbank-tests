@@ -47,6 +47,13 @@ public abstract class BasePage<T extends BasePage> {
         return (T) this;
     }
 
+    public T checkAlertAndAcceptOneOf(String... expectedAlerts) {
+        Alert alert = switchTo().alert();
+        assertThat(alert.getText()).isIn((Object[]) expectedAlerts);
+        alert.accept();
+        return (T) this;
+    }
+
     public T selectAccount(String accountNumber) {
         selectAccountDropdown.click();
         $(Selectors.byText(accountNumber)).click();

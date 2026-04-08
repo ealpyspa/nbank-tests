@@ -41,9 +41,9 @@ public class CreateUserTest extends BaseTest {
         return Stream.of(
                 // username field validation
                 // blank username
-                // it will return same errors texts, but in different orders. Hint: It's not a string but array of strings returned in the response
+                // it will return same errors texts, but in different orders. Hint: It's not a string but list of strings returned in the response
                 Arguments.of(" ", "Password33%", "USER", "username",
-                        List.of("Username cannot be blank", "Username must contain only letters, digits, dashes, underscores, and dots", "Username must be between 3 and 15 characters")), // Username must contain only letters, digits, dashes, underscores, and dots, Username must be between 3 and 15 characters, Username cannot be blank"
+                        List.of("Username cannot be blank", "Username must contain only letters, digits, dashes, underscores, and dots", "Username must be between 3 and 15 characters")),
                 // username consists of 2 characters
                 Arguments.of("ab", "Password33%", "USER", "username",
                         List.of("Username must be between 3 and 15 characters")),
@@ -70,5 +70,4 @@ public class CreateUserTest extends BaseTest {
                 ResponseSpecs.requestReturnsBadRequestJson(errorKey, errorValue))
                 .post(createUserRequest);
     }
-
 }

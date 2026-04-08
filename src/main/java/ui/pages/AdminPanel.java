@@ -1,6 +1,9 @@
 package ui.pages;
 
-import com.codeborne.selenide.*;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selectors;
+import com.codeborne.selenide.SelenideElement;
+import common.utils.RetryUtils;
 import lombok.Getter;
 import ui.elements.UserBadge;
 
@@ -27,9 +30,14 @@ public class AdminPanel extends BasePage<AdminPanel> {
 
     public List<UserBadge> getAllUsers() {
         ElementsCollection elementsCollection = $(Selectors.byText("All Users")).parent().findAll("li");
-
-        elementsCollection.shouldBe(CollectionCondition.sizeGreaterThan(0));
-
         return generatePageElements(elementsCollection, UserBadge::new);
+    }
+
+    public UserBadge findUserByUsername(String username) {
+        return RetryUtils.retry(
+                () -> getAllUsers().stream().filter(it -> it.getUsername().equals(username)).findAny().orElse(null),
+                result -> result != null,
+                3,
+                1000);
     }
 }

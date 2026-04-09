@@ -2,6 +2,8 @@ package api.iteration2;
 
 import api.iteration1.BaseTest;
 import api.models.*;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -13,7 +15,11 @@ import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
 
 import java.util.stream.Stream;
-
+/*
+  - Tests annotated with this same lock key are serialized with each other.
+  - Tests without this lock (or with other keys) can still run in parallel.
+ */
+@ResourceLock(value = "accounts-write", mode = ResourceAccessMode.READ_WRITE)
 public class DepositMoneyTest extends BaseTest {
 
     public static Stream<Arguments> validAmountOfMoney() {

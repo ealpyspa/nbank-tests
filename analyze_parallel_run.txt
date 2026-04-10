@@ -1,4 +1,4 @@
-Analysis of test distribution between workers.
+  Analysis of test distribution between workers
 
   Thread ForkJoinPool-1-worker-2 : Test started api.iteration1.userCanCreateAccountTest()
   Thread ForkJoinPool-1-worker-3 : Test started api.iteration1.[2] ab, Password33%, USER, username, [Username must be between 3 and 15 characters]
@@ -74,24 +74,24 @@ Analysis of test distribution between workers.
 
   Table of test time per worker
 
-| Worker   | Test 1              | Time  | Test 2                        | Time | Test 3          | Time | Test 4             | Time | Test 5             | Time | Test 6               | Time | Test 7+       | Total (ms) |
-| -------- | ------------------- | ----- | ----------------------------- | ---- | --------------- | ---- | ------------------ | ---- | ------------------ | ---- | -------------------- | ---- | ------------- | ---------- |
-| worker-1 | ui.iteration2.[1] a | 3924  | ui.iteration2.[1] Test Testov | 9579 | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **13503**  |
-| worker-2 | userCreateAccount   | 3388  | adminAuthToken                | 286  | userAuthToken   | 649  | api.iteration2.[1] | 2337 | api.iteration2.[2] | 1683 | ui.userCreateAccount | 3195 | —             | **11538**  |
-| worker-3 | test[2]             | 2572  | test[3]                       | 323  | test[4]         | 297  | test[1]            | 227  | adminCreateUser    | 476  | updateNameTest       | 2082 | +9 more tests | **23159**  |
-| worker-4 | transfer[1]         | 4263  | transfer[2]                   | 4203 | invalidUserTest | 4312 | —                  | —    | —                  | —    | —                    | —    | —             | **12778**  |
-| worker-5 | adminLogin          | 11658 | —                             | —    | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **11658**  |
-| worker-6 | ui.iteration2.[1] 0 | 3027  | ui.iteration2.[1] 1           | 1760 | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **4787**   |
-| worker-7 | adminCreateUser     | 6488  | —                             | —    | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **6488**   |
-| worker-8 | userLoginCorrect    | 17906 | —                             | —    | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **17906**  |
-| worker-9 | userLoginIncorrect  | 17598 | —                             | —    | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **17598**  |
+  | Worker   | Test 1              | Time  | Test 2                        | Time | Test 3          | Time | Test 4             | Time | Test 5             | Time | Test 6               | Time | Test 7+       | Total (ms) |
+  | -------- | ------------------- | ----- | ----------------------------- | ---- | --------------- | ---- | ------------------ | ---- | ------------------ | ---- | -------------------- | ---- | ------------- | ---------- |
+  | worker-1 | ui.iteration2.[1] a | 3924  | ui.iteration2.[1] Test Testov | 9579 | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **13503**  |
+  | worker-2 | userCreateAccount   | 3388  | adminAuthToken                | 286  | userAuthToken   | 649  | api.iteration2.[1] | 2337 | api.iteration2.[2] | 1683 | ui.userCreateAccount | 3195 | —             | **11538**  |
+  | worker-3 | test[2]             | 2572  | test[3]                       | 323  | test[4]         | 297  | test[1]            | 227  | adminCreateUser    | 476  | updateNameTest       | 2082 | +9 more tests | **23159**  |
+  | worker-4 | transfer[1]         | 4263  | transfer[2]                   | 4203 | invalidUserTest | 4312 | —                  | —    | —                  | —    | —                    | —    | —             | **12778**  |
+  | worker-5 | adminLogin          | 11658 | —                             | —    | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **11658**  |
+  | worker-6 | ui.iteration2.[1] 0 | 3027  | ui.iteration2.[1] 1           | 1760 | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **4787**   |
+  | worker-7 | adminCreateUser     | 6488  | —                             | —    | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **6488**   |
+  | worker-8 | userLoginCorrect    | 17906 | —                             | —    | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **17906**  |
+  | worker-9 | userLoginIncorrect  | 17598 | —                             | —    | —               | —    | —                  | —    | —                  | —    | —                    | —    | —             | **17598**  |
 
   23159 ms - max time of tests in one worker
   17906 ms - max time of 1 test in one worker (no other tests in worker)
   Total time:  01:09 min -> Maven tim
   Maven test phase: 50726 ms
 
-========================================================================================
+  ============================================================================================
 
   Is it possible to parametrize tests more to reduce test time?
   Yes, better run API test in 6 threads and UI in 2 threads for stability
@@ -202,7 +202,7 @@ Analysis of test distribution between workers.
   Total time:  01:06 min -> Maven time
   Maven test phase - 64139 ms
 
-============================================================================================
+  ============================================================================================
 
   As a result, profile API and UI configurations decrease total time by 3 min:
   API+UI in 2 threads - Total time:  01:09 min
@@ -227,3 +227,77 @@ Analysis of test distribution between workers.
                                   <junit.jupiter.execution.parallel.config.strategy>fixed</junit.jupiter.execution.parallel.config.strategy>
                                   <junit.jupiter.execution.parallel.config.fixed.parallelism>2</junit.jupiter.execution.parallel.config.fixed.parallelism>
                               </systemPropertyVariables>
+
+  ============================================================================================
+
+  ======================================Final comparison======================================
+
+  | Configuration       | Number of Threads | Application Startup Time* | Pure Test Execution Time** | Total Execution Time*** |
+  | ------------------- | ----------------- | --------------------------| ---------------------------| ----------------------- |
+  | Without parallelism | 1                 | 41.96 sec                 | 122.27 sec                 | 178.00 sec              |
+  | With parallelism    | 2                 | 7.64 sec                  | 71.33 sec                  | 80.00 sec               |
+
+  Application Startup Time* (everything before the test phase)
+   BEFORE: 1041 + 1181 + 28700 + 36 + 10998 = 41956 ms
+   AFTER: 48 + 506 + 183 + 4782 + 16 + 2107 = 7642 ms
+  Pure Test Execution Time**
+    BEFORE: 122273 ms
+    AFTER: 71331 ms
+  Total Execution Time***
+    BEFORE: 41956 + 122273 = 164229 ms
+    AFTER: 7642 + 71331 = 78973 ms
+
+  Additional calculations:
+  Total time
+    BEFORE: 02:58 min = 178000 ms
+    AFTER: 01:20 min = 80000 ms
+  Total Execution Time > Total Time
+    BEFORE: 178000 - 164229 = 13771 ms (hidden overhead (Maven internals))
+    AFTER: 80000 - 78973 = 1 027 ms (hidden overhead (Maven internals))
+
+  ==========================================Changes===========================================
+
+  1. Isolated mutable test state per thread (SessionStorage)
+
+  - SessionStorage now uses ThreadLocal<SessionStorage> (INSTANCE).
+  - All reads/writes go through INSTANCE.get(), so each thread works with its own session data.
+  - Prevents threads from overwriting each other’s users/steps.
+
+  2. Made API test cleanup thread-safe (BaseTest)
+
+  - Replaced shared static cleanup list with:
+    ThreadLocal<List<CreateUserResponse>> createUserResponses.
+  - registerCreatedUser(...) adds to current thread’s list only.
+  - cleanUpUsers() deletes users from the current thread list and then calls createUserResponses.remove().
+  - Prevents cross-test interference and teardown conflicts in parallel mode.
+
+  3. Reduced UI parallel resource conflicts (BaseUiTest)
+
+  - In @AfterEach, browser state is cleaned and driver is closed:
+    clearBrowserCookies(); clearBrowserLocalStorage(); closeWebDriver();
+  - Ensures each test releases remote browser session and avoids session buildup under parallel execution.
+
+  4. Made auth-header cache concurrency-safe (RequestSpecs)
+
+  - Replaced non-thread-safe cache with ConcurrentHashMap.
+  - Switched to atomic lazy initialization via computeIfAbsent(...) when fetching user auth headers.
+  - Prevents race conditions during parallel login/auth header retrieval.
+
+  ========================================Conclusions=========================================
+
+  1. Best practical setup: API = 6 threads, UI = 2 threads.
+
+  - API gets a clear speedup at 6 threads.
+  - UI stays stable at 2 threads; above that, flakiness and retries usually increase.
+
+  2. Where we hit limits:
+
+  - Browser resources (Selenoid/WebDriver): increasing UI parallelism leads to SessionNotCreated/timeouts and session-creation queueing.
+  - Server/API resources: contention on shared entities (accounts/profiles), so some tests are effectively serialized (e.g., via @ResourceLock) and do not scale linearly.
+  - Load imbalance: a few heavy UI tests (~17–18s) create a “long tail” that limits total suite speedup.
+
+  3. Practical outcome:
+
+  - Increasing threads further makes sense mainly for API tests.
+  - For UI, the current optimum is 2 threads (sometimes 1 if stability is the top priority).
+  - The main bottleneck is not JUnit itself, but external resources (browsers + backend contention).

@@ -5,6 +5,8 @@ import api.models.CreateUserRequest;
 import api.requests.steps.UserSteps;
 import common.annotations.UserSession;
 import common.storage.SessionStorage;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import ui.BaseUiTest;
@@ -14,6 +16,7 @@ import ui.pages.UserDashboard;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ResourceLock(value = "accounts-write", mode = ResourceAccessMode.READ_WRITE)
 public class DepositMoneyTest extends BaseUiTest {
     @ParameterizedTest
     @CsvSource("1")

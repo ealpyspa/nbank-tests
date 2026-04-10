@@ -26,15 +26,16 @@ public class BaseUiTest extends BaseTest {
         Configuration.baseUrl = Config.getProperty("uiBaseUrl");
         Configuration.browser = Config.getProperty("browser");
         Configuration.browserSize = Config.getProperty("browserSize");
+        Configuration.headless = true;
         Configuration.browserCapabilities.setCapability("selenoid:options",
                 Map.of("enableVNC", true, "enableLog", true));
     }
 
     @AfterEach
     public void resetBrowserState(){
-        open("/");
         clearBrowserCookies();
         clearBrowserLocalStorage();
+        closeWebDriver(); // important for parallel runs: release remote sessions
     }
 
     public void authAsUser(String username, String password) {

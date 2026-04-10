@@ -3,6 +3,7 @@ package ui.iteration1;
 import api.models.UserGetAccountsResponse;
 import common.annotations.UserSession;
 import common.storage.SessionStorage;
+import common.utils.RetryUtils;
 import org.junit.jupiter.api.Test;
 import ui.BaseUiTest;
 import ui.pages.BankAlert;
@@ -18,7 +19,11 @@ public class CreateAccountTest extends BaseUiTest {
     public void userCanCreateAccountTest() {
         new UserDashboard().open().creteNewAccount();
 
-        List<UserGetAccountsResponse> createdAccounts = SessionStorage.getSteps().getAllAccounts();
+        List<UserGetAccountsResponse> createdAccounts = RetryUtils.retry(
+                () -> SessionStorage.getSteps().getAllAccounts(),
+                accounts -> accounts.size() == 1,
+                3,
+                100);
 
         assertThat(createdAccounts).hasSize(1);
 

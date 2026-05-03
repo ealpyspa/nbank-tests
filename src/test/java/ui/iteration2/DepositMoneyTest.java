@@ -3,6 +3,7 @@ package ui.iteration2;
 import api.models.CreateAccountResponse;
 import api.models.CreateUserRequest;
 import api.requests.steps.UserSteps;
+import common.annotations.APIVersion;
 import common.annotations.UserSession;
 import common.storage.SessionStorage;
 import org.junit.jupiter.api.parallel.ResourceAccessMode;
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ResourceLock(value = "accounts-write", mode = ResourceAccessMode.READ_WRITE)
 public class DepositMoneyTest extends BaseUiTest {
     @ParameterizedTest
+    @APIVersion("with_validation_fix")
     @CsvSource("1")
     @UserSession
     public void userCanDepositMoneyWithValidSumTest(float amount) {

@@ -1,9 +1,13 @@
 package api.iteration1;
 
+import api.dao.UserDao;
+import api.dao.comparison.DaoModelAssertions;
 import api.generators.RandomModelGenerator;
 import api.models.CreateUserRequest;
 import api.models.CreateUserResponse;
 import api.models.comparison.ModelAssertions;
+import api.requests.steps.DataBaseSteps;
+import common.annotations.APIVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -20,6 +24,7 @@ import java.util.stream.Stream;
 public class CreateUserTest extends BaseTest {
 
     @Test
+    @APIVersion("with_database")
     // TODO: add test about creating name with all valid characters (letters, digits, dashes, underscores, and dots)
     public void adminCanCreateUserWithCorrectDataTest() {
         CreateUserRequest createUserRequest = RandomModelGenerator.generate(CreateUserRequest.class);
@@ -35,6 +40,8 @@ public class CreateUserTest extends BaseTest {
 
         ModelAssertions.assertThatModels(createUserRequest, createUserResponse).match();
 
+        UserDao userDao = DataBaseSteps.getUserById(createUserResponse.getId());
+        DaoModelAssertions.assertThat(createUserResponse, userDao).match();
     }
 
     public static Stream<Arguments> userInvalidData() {
@@ -56,6 +63,7 @@ public class CreateUserTest extends BaseTest {
     }
 
     @ParameterizedTest
+    @APIVersion("with_validation_fix")
     @MethodSource("userInvalidData")
     public void adminCannotCreateUserWithInvalidDataTest(String username, String password, String role, String errorKey, List<String> errorValue) {
         CreateUserRequest createUserRequest = CreateUserRequest.builder()

@@ -3,6 +3,7 @@ package api.iteration2;
 import api.iteration1.BaseTest;
 import api.models.*;
 import api.models.comparison.ModelAssertions;
+import common.annotations.APIVersion;
 import org.junit.jupiter.api.parallel.ResourceAccessMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,6 +30,7 @@ public class TransferMoneyTest extends BaseTest {
     }
 
     @ParameterizedTest
+    @APIVersion("with_validation_fix")
     @MethodSource("validAmountOfMoney")
     // Positive test: User can transfer valid amount of money to another user's account
     public void useCanTransferMoneyToAnotherUserTest(float balance, float amount, String message) {
@@ -102,7 +104,5 @@ public class TransferMoneyTest extends BaseTest {
                 .get(0).getBalance();
 
         softly.assertThat(actualBalance).isEqualTo(afterDepositBalance - amount);
-
     }
-
 }

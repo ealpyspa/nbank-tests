@@ -26,7 +26,6 @@ public class LoginUserTest extends BaseTest {
                 RequestSpecs.unauthSpec(),
                 ResponseSpecs.requestReturnsOk())
                 .post(loginUserRequest);
-
     }
 
     @Test
@@ -46,6 +45,5 @@ public class LoginUserTest extends BaseTest {
                         .password(userRequest.getPassword())
                         .build())
                 .header("Authorization", Matchers.notNullValue());
-
     }
 }

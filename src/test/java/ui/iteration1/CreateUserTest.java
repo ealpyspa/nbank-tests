@@ -5,6 +5,7 @@ import api.models.CreateUserRequest;
 import api.models.CreateUserResponse;
 import api.models.comparison.ModelAssertions;
 import api.requests.steps.AdminSteps;
+import common.annotations.APIVersion;
 import common.annotations.AdminSession;
 import org.junit.jupiter.api.Test;
 import ui.BaseUiTest;
@@ -17,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CreateUserTest extends BaseUiTest {
     @Test
+    @APIVersion("with_validation_fix")
     @AdminSession
     public void adminCanCreateUserTest() {
         CreateUserRequest newUser = RandomModelGenerator.generate(CreateUserRequest.class);
@@ -38,6 +40,7 @@ public class CreateUserTest extends BaseUiTest {
     }
 
     @Test
+    @APIVersion("with_validation_fix")
     @AdminSession
     public void adminCannotCreateUserWithInvalidDataTest() {
         CreateUserRequest newUser = RandomModelGenerator.generate(CreateUserRequest.class);

@@ -1,6 +1,7 @@
 package api.iteration1;
 
 import api.models.CreateUserResponse;
+import common.extension.APIVersionExtension;
 import common.extension.TimingExtension;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ExtendWith(TimingExtension.class)
+@ExtendWith(APIVersionExtension.class)
 public class BaseTest {
     protected SoftAssertions softly;
 

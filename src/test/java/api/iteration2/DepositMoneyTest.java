@@ -2,6 +2,7 @@ package api.iteration2;
 
 import api.iteration1.BaseTest;
 import api.models.*;
+import common.annotations.APIVersion;
 import org.junit.jupiter.api.parallel.ResourceAccessMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,6 +39,7 @@ public class DepositMoneyTest extends BaseTest {
     // Question: can it be fixed in API, so it returns same result constantly?
     // Workaround solution: extract value and use assertEquals()
     @ParameterizedTest
+    @APIVersion("with_validation_fix")
     @MethodSource("validAmountOfMoney")
     public void userCanTopUpAccount(float balance) {
         // create user
@@ -82,6 +84,5 @@ public class DepositMoneyTest extends BaseTest {
                 .getAll().get(0).getBalance();
 
         softly.assertThat(actualBalance).isEqualTo(createdAccountBalance + balance);
-
     }
 }

@@ -5,6 +5,7 @@ import api.models.CreateAccountResponse;
 import api.models.CreateUserRequest;
 import api.models.DepositMoneyRequest;
 import api.requests.steps.UserSteps;
+import common.annotations.APIVersion;
 import common.annotations.UserSession;
 import common.storage.SessionStorage;
 import org.junit.jupiter.api.parallel.ResourceAccessMode;
@@ -21,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ResourceLock(value = "accounts-write", mode = ResourceAccessMode.READ_WRITE)
 public class TransferMoneyTest extends BaseUiTest {
     @ParameterizedTest
+    @APIVersion("with_validation_fix")
     @CsvSource("1, 1")
     @UserSession(value = 2, auth = 1)
     public void userCanMakeTransferToAccountTest(float balance, float amount) {
@@ -56,6 +58,7 @@ public class TransferMoneyTest extends BaseUiTest {
     }
 
     @ParameterizedTest
+    @APIVersion("with_validation_fix")
     @CsvSource("1, 1")
     @UserSession
     public void userCannotMakeTransferToNotExistingAccount(float amount, float balance) {

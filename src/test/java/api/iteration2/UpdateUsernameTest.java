@@ -4,6 +4,7 @@ import api.iteration1.BaseTest;
 import api.generators.RandomModelGenerator;
 import api.models.*;
 import api.models.comparison.ModelAssertions;
+import common.annotations.APIVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -19,6 +20,7 @@ import java.util.stream.Stream;
 public class UpdateUsernameTest extends BaseTest {
     //Positive test: Authorised user can update their name to another valid name (2 words, only letters, divided by space)
     @Test
+    @APIVersion("with_validation_fix")
     public void userCanUpdateNameTest() {
         // prepare request for user creation
         // CreateUserRequest createUserRequest = AdminSteps.createUser(); -> not applicable as need to extract "name"
@@ -72,6 +74,9 @@ public class UpdateUsernameTest extends BaseTest {
         softly.assertThat(updatedName).isEqualTo(userUpdateNameRequest.getName());
         softly.assertThat(updatedName).isNotEqualTo(initialName);
 
+        // testsVersion=with_database: model of getCustomerProfileRequest is changed + auth type possibly changed -> failure
+        // UserDao userDao = DataBaseSteps.getUserById(createUserResponse.getId());
+        // DaoModelAssertions.assertThat(userUpdateNameRequest, userDao);
     }
 
     public static Stream<Arguments> notValidName() {
@@ -93,8 +98,8 @@ public class UpdateUsernameTest extends BaseTest {
         );
     }
 
-    //Negative test: Authorised user cannot update their name to not valid name
     @ParameterizedTest
+    @APIVersion("with_validation_fix")
     @MethodSource("notValidName")
     public void userCannotUpdateNameToNotValidTest(String updatedName, String message) {
         // prepare request for user creation
@@ -133,6 +138,5 @@ public class UpdateUsernameTest extends BaseTest {
                 .getAll().get(0).getName();
 
         softly.assertThat(actualName).isEqualTo(initialName);
-
     }
 }

@@ -60,8 +60,8 @@ public class DepositMoneyTest extends BaseTest {
 
         // create a request to make a deposit (leave as is because of parameters)
         DepositMoneyRequest depositMoneyRequest = DepositMoneyRequest.builder()
-                .id(createdAccountId)
-                .balance(balance)
+                .accountId(createdAccountId)
+                .amount(balance)
                 .build();
 
         // make a deposit + get amount of it + compare

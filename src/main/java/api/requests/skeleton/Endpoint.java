@@ -59,6 +59,12 @@ public enum Endpoint {
             "/admin/users/{id}",
             BaseModel.class,
             BaseModel.class
+    ),
+
+    TRANSFER_WITH_FRAUD_CHECK(
+            "/accounts/transfer-with-fraud-check",
+            TransferMoneyRequest.class,
+            TransferMoneyResponse.class
     );
 
     private final String url;

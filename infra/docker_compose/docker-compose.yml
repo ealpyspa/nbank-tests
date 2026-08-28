@@ -1,13 +1,16 @@
 services:
   backend:
-    image: nobugsme/nbank:with_database
+    image: nobugsme/nbank:preprod_version
     ports:
       - "4111:4111"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/nbank
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - FRAUD_DETECTION_SERVICE_URL=http://host.docker.internal:8080
     depends_on:
       - postgres
     networks:

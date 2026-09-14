@@ -88,3 +88,4 @@ jobs:
       - name: Clean up services
         if: always()
         run: cd infra/docker_compose && docker compose down
+

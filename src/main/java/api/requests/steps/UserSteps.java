@@ -32,7 +32,7 @@ public class UserSteps {
     }
 
     public static ValidatableResponse depositMoneyResponse (CreateUserRequest createUserRequest, DepositMoneyRequest depositMoneyRequest) {
-         return StepLogger.log("User " + createUserRequest.getUsername() + " deposits money to thei account",
+         return StepLogger.log("User " + createUserRequest.getUsername() + " deposits money to their account",
                  () -> new CrudRequester(
                 Endpoint.ACCOUNTS_DEPOSIT,
                 RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),

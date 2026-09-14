@@ -34,8 +34,8 @@ public class TransferMoneyTest extends BaseUiTest {
         String createdAccountNumber = createAccountResponse1.getAccountNumber();
 
         DepositMoneyRequest depositMoneyRequest = DepositMoneyRequest.builder()
-                .id(createdAccountId)
-                .balance(balance)
+                .accountId(createdAccountId)
+                .amount(balance)
                 .build();
 
         UserSteps.depositMoneyResponse(user1, depositMoneyRequest);
@@ -69,8 +69,8 @@ public class TransferMoneyTest extends BaseUiTest {
         String createdAccountNumber = createAccountResponse1.getAccountNumber();
 
         DepositMoneyRequest depositMoneyRequest = DepositMoneyRequest.builder()
-                .id(createdAccountId)
-                .balance(balance)
+                .accountId(createdAccountId)
+                .amount(balance)
                 .build();
 
         UserSteps.depositMoneyResponse(user1, depositMoneyRequest);

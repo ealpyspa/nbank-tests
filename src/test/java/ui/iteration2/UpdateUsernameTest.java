@@ -1,5 +1,6 @@
 package ui.iteration2;
 
+import common.annotations.APIVersion;
 import common.annotations.UserSession;
 import common.storage.SessionStorage;
 import common.utils.Utilities;
@@ -32,6 +33,7 @@ public class UpdateUsernameTest extends BaseUiTest {
     @ParameterizedTest
     @ValueSource(strings = "a")
     @UserSession
+    @APIVersion("with-database") // in "preprod_version" fails due to actual alert text [object Object]
     public void userCannotUpdateNameToInvalidTest(String newName) {
         String initialName = SessionStorage.getSteps().getCustomerProfile().getName();
 

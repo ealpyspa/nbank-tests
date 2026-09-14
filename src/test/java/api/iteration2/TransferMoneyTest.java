@@ -46,8 +46,8 @@ public class TransferMoneyTest extends BaseTest {
 
         // create a request to make a deposit (leave as is because of parameters)
         DepositMoneyRequest depositMoneyRequest = DepositMoneyRequest.builder()
-                .id(createdAccountId)
-                .balance(balance)
+                .accountId(createdAccountId)
+                .amount(balance)
                 .build();
 
         // user1 top up their account with money (enough to make transfer)
